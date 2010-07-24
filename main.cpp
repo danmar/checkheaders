@@ -215,8 +215,6 @@ static void CppCheck(const char FileName[], unsigned int FileId)
     Files.clear();
     Tokenize(FileName);
 
-    FillFunctionList(FileId);
-
     // Including header which is not needed
     WarningIncludeHeader();
 
