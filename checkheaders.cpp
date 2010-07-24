@@ -36,7 +36,7 @@
 
 void WarningHeaderWithImplementation()
 {
-    for (TOKEN *tok = tokens; tok; tok = tok->next)
+    for (const Token *tok = tokens; tok; tok = tok->next)
     {
         // Only interested in included file
         if (tok->FileIndex == 0)
@@ -71,7 +71,7 @@ void WarningHeaderWithImplementation()
 void WarningIncludeHeader()
 {
     // Including..
-    for (TOKEN *includetok = tokens; includetok; includetok = includetok->next)
+    for (const Token *includetok = tokens; includetok; includetok = includetok->next)
     {
         if (strcmp(includetok->str, "#include") != 0)
             continue;
@@ -100,7 +100,7 @@ void WarningIncludeHeader()
 
         // Extract classes and names in the header..
         int indentlevel = 0;
-        for ( TOKEN *tok1 = tokens; tok1; tok1 = tok1->next )
+        for (const Token *tok1 = tokens; tok1; tok1 = tok1->next )
         {
             if ( tok1->FileIndex != hfile )
                 continue;
@@ -194,7 +194,7 @@ void WarningIncludeHeader()
         // Check if the extracted names are used...
         bool Needed = false;
         bool NeedDeclaration = false;
-        for (TOKEN *tok1 = tokens; tok1; tok1 = tok1->next)
+        for (const Token *tok1 = tokens; tok1; tok1 = tok1->next)
         {
             if (tok1->FileIndex != includetok->FileIndex)
                 continue;
