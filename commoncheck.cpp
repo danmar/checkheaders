@@ -232,56 +232,6 @@ const TOKEN *GetFunctionTokenByName( const char funcname[] )
 }
 //---------------------------------------------------------------------------
 
-void CheckGlobalFunctionUsage(const std::vector<std::string> &filenames)
-{
-    // Iterator for GlobalFunctions
-    std::list<GlobalFunction>::const_iterator func;
-
-    // Iterator for UsedGlobalFunctions
-    std::list<GlobalFunction>::const_iterator usedfunc;
-
-    // Check that every function in GlobalFunctions are used
-    for ( func = GlobalFunctions.begin(); func != GlobalFunctions.end(); func++ )
-    {
-        const std::string &funcname = func->name();
-
-        if ( funcname == "main" || funcname == "WinMain" )
-            continue;
-
-        // Check if this global function is used in any of the other files..
-        bool UsedOtherFile = false;
-        bool UsedAnyFile = false;
-        for ( usedfunc = UsedGlobalFunctions.begin(); usedfunc != UsedGlobalFunctions.end(); usedfunc++ )
-        {
-            if ( funcname == usedfunc->name() )
-            {
-                UsedAnyFile = true;
-                if (func->file_id() != usedfunc->file_id())
-                {
-                    UsedOtherFile = true;
-                    break;
-                }
-            }
-        }
-
-        if ( ! UsedAnyFile )
-        {
-            std::ostringstream errmsg;
-            errmsg << "[" << filenames[func->file_id()] << "]: "
-                   << "The function '" << func->name() << "' is never used.";
-            ReportErr( errmsg.str() );
-        }
-        else if ( ! UsedOtherFile )
-        {
-            std::ostringstream errmsg;
-            errmsg << "[" << filenames[func->file_id()] << "]: "
-                   << "The linkage of the function '" << func->name() << "' can be local (static) instead of global";
-            ReportErr( errmsg.str() );
-        }
-    }
-}
-//---------------------------------------------------------------------------
-
 bool Match(const TOKEN *tok, const char pattern[], const char *varname1[], const char *varname2[])
 {
     if (!tok)

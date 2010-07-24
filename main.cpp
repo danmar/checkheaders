@@ -217,7 +217,7 @@ static void CppCheck(const char FileName[], unsigned int FileId)
 
     FillFunctionList(FileId);
 
-    // Including header which is not needed (too many false positives)
+    // Including header which is not needed
     WarningIncludeHeader();
 
     // Clean up tokens..
