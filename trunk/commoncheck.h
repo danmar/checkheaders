@@ -47,7 +47,6 @@ bool IsStandardType(const char str[]);
 
 void FillFunctionList(const unsigned int file_id);
 const TOKEN *GetFunctionTokenByName( const char funcname[] );
-void CheckGlobalFunctionUsage(const std::vector<std::string> &filenames);
 
 bool Match(const TOKEN *tok, const char pattern[], const char *varname1[]=0, const char *varname2[]=0);
 
