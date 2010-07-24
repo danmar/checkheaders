@@ -232,7 +232,7 @@ const TOKEN *GetFunctionTokenByName( const char funcname[] )
 }
 //---------------------------------------------------------------------------
 
-bool Match(const TOKEN *tok, const char pattern[], const char *varname1[], const char *varname2[])
+bool Match(const TOKEN *tok, const char pattern[])
 {
     if (!tok)
         return false;
@@ -266,32 +266,6 @@ bool Match(const TOKEN *tok, const char pattern[], const char *varname1[], const
                 return false;
         }
 
-        // Variable name..
-        else if (strcmp(str,"%var1%")==0 || strcmp(str,"%var2%")==0)
-        {
-            const char **varname = (strcmp(str,"%var1%")==0) ? varname1 : varname2;
-
-            if ( ! varname )
-                return false;
-
-            if (strcmp(tok->str, varname[0]) != 0)
-                return false;
-
-            for ( int i = 1; varname[i]; i++ )
-            {
-                if ( ! gettok(tok, 2) )
-                    return false;
-
-                if ( strcmp(getstr(tok, 1), ".") )
-                    return false;
-
-                if ( strcmp(getstr(tok, 2), varname[i]) )
-                    return false;
-
-                tok = gettok(tok, 2);
-            }
-        }
-
         else if (strcmp(str,"%num%")==0)
         {
             if ( ! IsNumber(tok->str) )
@@ -323,17 +297,6 @@ bool Match(const TOKEN *tok, const char pattern[], const char *varname1[], const
 
     // The end of the pattern has been reached and nothing wrong has been found
     return true;
-}
-//---------------------------------------------------------------------------
-
-const TOKEN *findmatch(const TOKEN *tok, const char pattern[], const char *varname1[], const char *varname2[])
-{
-    for ( ; tok; tok = tok->next)
-    {
-        if ( Match(tok, pattern, varname1, varname2) )
-            return tok;
-    }
-    return 0;
 }
 //---------------------------------------------------------------------------
 
