@@ -45,9 +45,6 @@ bool IsNumber(const char str[]);
 
 bool IsStandardType(const char str[]);
 
-void FillFunctionList(const unsigned int file_id);
-const TOKEN *GetFunctionTokenByName( const char funcname[] );
-
 bool Match(const TOKEN *tok, const char pattern[]);
 
 void deleteTokens(TOKEN *tok);
