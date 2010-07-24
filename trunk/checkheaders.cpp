@@ -189,10 +189,40 @@ void WarningIncludeHeader()
         // Check if the extracted names are used...
         bool Needed = false;
         bool NeedDeclaration = false;
+        indentlevel = 0;
         for (const Token *tok1 = tokens; tok1; tok1 = tok1->next)
         {
             if (tok1->FileIndex != includetok->FileIndex)
                 continue;
+
+            // implementation begins..
+            if (indentlevel == 0 && (Match(tok1, ") {") || Match(tok1, ") const {")))
+                indentlevel = 1;
+
+            // implementation in header <=> indentlevel > 0
+            if (indentlevel > 0)
+            {
+                if (tok1->str[0] == '{')
+                    ++indentlevel;
+
+                else if (tok1->str[0] == '}')
+                {
+                    if (indentlevel <= 2)
+                        indentlevel = 0;
+                    else
+                        --indentlevel;
+                }
+
+                // All used names in implementation are needed
+                else if (IsName(tok1->str))
+                {
+                    if (std::find(classlist.begin(),classlist.end(),tok1->str)!=classlist.end())
+                    {
+                        Needed = true;
+                        break;
+                    }
+                }
+            }
 
             if ( Match(tok1, ": %var% {") || Match(tok1, ": %type% %var% {") )
             {
