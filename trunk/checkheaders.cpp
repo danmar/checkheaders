@@ -42,16 +42,11 @@ void WarningHeaderWithImplementation()
         if (tok->FileIndex == 0)
             continue;
 
-        if (Match(tok, ") {"))
+        if (Match(tok, ") const| {"))
         {
             std::ostringstream ostr;
-            ostr << FileLine(tok) << ": Found implementation in header";
-            ReportErr(ostr.str());
-
-            // Goto next file..
-            unsigned int fileindex = tok->FileIndex;
-            while ( tok->next && tok->FileIndex == fileindex )
-                tok = tok->next;
+            ostr << "Found implementation in header";
+            ReportErr(tok, __FUNCTION__, ostr.str());
         }
     }
 }
@@ -231,10 +226,10 @@ void WarningIncludeHeader()
         if (!Needed)
         {
             std::ostringstream ostr;
-            ostr << FileLine(includetok) << ": The included header '" << includefile << "' is not needed";
+            ostr << "The included header '" << includefile << "' is not needed";
             if (NeedDeclaration)
                 ostr << " (but a forward declaration is needed)";
-            ReportErr(ostr.str());
+            ReportErr(includetok, __FUNCTION__, ostr.str());
         }
     }
 }

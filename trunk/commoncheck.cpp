@@ -30,13 +30,12 @@
 #include <ctype.h>
 #endif
 //---------------------------------------------------------------------------
-extern bool CheckCodingStyle;
-bool OnlyReportUniqueErrors;
-std::ostringstream errout;
+
+extern bool XmlOutput;
 
 //---------------------------------------------------------------------------
 
-std::string FileLine(const Token *tok)
+static std::string FileLine(const Token *tok)
 {
     std::ostringstream ostr;
     ostr << "[" << Files[tok->FileIndex] << ":" << tok->linenr << "]";
@@ -63,15 +62,28 @@ bool SameFileName( const char fname1[], const char fname2[] )
 
 std::list<std::string> ErrorList;
 
-void ReportErr(const std::string &errmsg)
+void ReportErr(const Token *tok, const std::string &id, const std::string &errmsg)
 {
-    if ( OnlyReportUniqueErrors )
+    std::ostringstream ostr;
+    if (XmlOutput)
     {
-        if ( std::find( ErrorList.begin(), ErrorList.end(), errmsg ) != ErrorList.end() )
-            return;
-        ErrorList.push_back( errmsg );
+        ostr << "<error file=\"" << Files[tok->FileIndex] << "\""
+             << " line=\"" << tok->linenr << "\""
+             << " severity=\"style\""
+             << " id=\"" << id << "\""
+             << " msg=\"" << errmsg << "\">";
     }
-    errout << errmsg << std::endl;
+    else
+    {
+        ostr << FileLine(tok) << " (style): " << errmsg;
+    }
+
+    // Avoid duplicate error messages..
+    if (std::find(ErrorList.begin(), ErrorList.end(), ostr.str()) != ErrorList.end() )
+        return;
+    ErrorList.push_back(ostr.str());
+
+    std::cerr << ostr.str() << std::endl;
 }
 //---------------------------------------------------------------------------
 

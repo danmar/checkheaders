@@ -49,8 +49,7 @@
 
 //---------------------------------------------------------------------------
 bool Debug = false;
-bool ShowAll = false;
-bool CheckCodingStyle = false;
+bool XmlOutput = false;
 //---------------------------------------------------------------------------
 
 static void CppCheck(const char FileName[], unsigned int FileId);
@@ -172,6 +171,11 @@ int main(int argc, char* argv[])
         {
             Debug = true;
         }
+
+        else if (strcmp(argv[i], "--xml") == 0)
+        {
+            XmlOutput = true;
+        }
         
         else if (strchr(argv[i],'*'))
         {
@@ -189,18 +193,25 @@ int main(int argc, char* argv[])
         std::cout << "check headers in C/C++ code\n"
                      "\n"
                      "Syntax:\n"
-                     "    checkheaders [filename1] [filename2]\n";
+                     "    checkheaders [--xml] [filename1] [filename2]\n";
         return 0;
     }
 
     std::sort( filenames.begin(), filenames.end() );
 
+    if (XmlOutput)
+    {
+        std::cerr << "<?xml version=\"1.0\"?>\n"
+                  << "<results>\n";
+    }
+
     for (unsigned int c = 0; c < filenames.size(); c++)
     {
-        errout.str("");
         CppCheck(filenames[c].c_str(), c);
-        std::cerr << errout.str();
     }
+
+    if (XmlOutput)
+        std::cerr << "</results>\n";
 
     return 0;
 }
@@ -211,8 +222,6 @@ int main(int argc, char* argv[])
 
 static void CppCheck(const char FileName[], unsigned int FileId)
 {
-    OnlyReportUniqueErrors = true;
-
     std::cout << "Checking " << FileName << "...\n";
 
     // Tokenize the file
@@ -224,7 +233,7 @@ static void CppCheck(const char FileName[], unsigned int FileId)
     if (Debug)
     {
         std::cout << "debug:";
-        for (const TOKEN *tok = tokens; tok; tok = tok->next)
+        for (const Token *tok = tokens; tok; tok = tok->next)
             std::cout << " " << tok->str;
         std::cout << "\n";
     }
@@ -234,9 +243,6 @@ static void CppCheck(const char FileName[], unsigned int FileId)
 
     // Clean up tokens..
     DeallocateTokens();
-
-    if ( errout.str().empty() )
-        std::cout << "No errors found\n";
 }
 //---------------------------------------------------------------------------
 

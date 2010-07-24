@@ -29,16 +29,10 @@
 
 struct Token;
 
-std::string FileLine(const Token *tok);
-
 // Are two filenames the same? Case insensitive on windows
 bool SameFileName( const char fname1[], const char fname2[] );
 
-extern bool OnlyReportUniqueErrors;
-
-void ReportErr(const std::string &errmsg);
-extern std::ostringstream errout;
-
+void ReportErr(const Token *tok, const std::string &id, const std::string &errmsg);
 
 bool IsName(const char str[]);
 bool IsNumber(const char str[]);
