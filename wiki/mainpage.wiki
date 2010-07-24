@@ -1,0 +1,15 @@
+#summary checkheaders
+
+= Introduction =
+
+check headers in C/C++ code.
+
+This tool helps users getting rid of unnecessary includes (reduce code dependencies and get faster compile times).
+
+This tool is under development. It is hoped that it will be ready to be released within a few weeks.
+
+= The future =
+
+It shouldn't be too much work to add checks for:
+ * implementation in headers.
+ * order of local includes and system includes.
