@@ -48,9 +48,9 @@ static void Define(const char Name[], const char Value[]);
 
 static void addtoken(const char str[], const unsigned int lineno, const unsigned int fileno);
 
-static void combine_2tokens(TOKEN *tok, const char str1[], const char str2[]);
+static void combine_2tokens(Token *tok, const char str1[], const char str2[]);
 
-static void DeleteNextToken(TOKEN *tok);
+static void DeleteNextToken(Token *tok);
 
 //---------------------------------------------------------------------------
 
@@ -58,7 +58,7 @@ static void DeleteNextToken(TOKEN *tok);
 //---------------------------------------------------------------------------
 
 std::vector<std::string> Files;
-struct TOKEN *tokens, *tokens_back;
+struct Token *tokens, *tokens_back;
 
 //---------------------------------------------------------------------------
 
@@ -150,8 +150,8 @@ static void addtoken(const char str[], const unsigned int lineno, const unsigned
 		str2 << str;
 	}
 
-    TOKEN *newtoken  = new TOKEN;
-    memset(newtoken, 0, sizeof(TOKEN));
+    Token *newtoken  = new Token;
+    memset(newtoken, 0, sizeof(Token));
     newtoken->str    = _strdup(str2.str().c_str());
     newtoken->linenr = lineno;
     newtoken->FileIndex = fileno;
@@ -189,7 +189,7 @@ static void addtoken(const char str[], const unsigned int lineno, const unsigned
 // Combine two tokens that belong to each other. Ex: "<" and "=" may become "<="
 //---------------------------------------------------------------------------
 
-static void combine_2tokens(TOKEN *tok, const char str1[], const char str2[])
+static void combine_2tokens(Token *tok, const char str1[], const char str2[])
 {
     if (!(tok && tok->next))
         return;
@@ -211,9 +211,9 @@ static void combine_2tokens(TOKEN *tok, const char str1[], const char str2[])
 // DeleteNextToken. Unlink and delete next token.
 //---------------------------------------------------------------------------
 
-static void DeleteNextToken(TOKEN *tok)
+static void DeleteNextToken(Token *tok)
 {
-    TOKEN *next = tok->next;
+    Token *next = tok->next;
     tok->next = next->next;
     free(next->str);
     delete next;
@@ -503,7 +503,7 @@ void TokenizeCode(std::istream &code, const unsigned int FileIndex)
     }
 
     // Combine tokens..
-    for (TOKEN *tok = tokens; tok && tok->next; tok = tok->next)
+    for (Token *tok = tokens; tok && tok->next; tok = tok->next)
     {
         combine_2tokens(tok, "<", "<");
         combine_2tokens(tok, ">", ">");
@@ -532,7 +532,7 @@ void TokenizeCode(std::istream &code, const unsigned int FileIndex)
     }
 
     // Replace "->" with "."
-    for ( TOKEN *tok = tokens; tok; tok = tok->next )
+    for ( Token *tok = tokens; tok; tok = tok->next )
     {
         if ( strcmp(tok->str, "->") == 0 )
         {
@@ -542,13 +542,13 @@ void TokenizeCode(std::istream &code, const unsigned int FileIndex)
     }
 
     // typedef..
-    for ( TOKEN *tok = tokens; tok; tok = tok->next )
+    for ( Token *tok = tokens; tok; tok = tok->next )
     {
         if (Match(tok, "typedef %type% %type% ;"))
         {
             const char *type1 = getstr(tok, 1);
             const char *type2 = getstr(tok, 2);
-            for ( TOKEN *tok2 = tok; tok2; tok2 = tok2->next )
+            for ( Token *tok2 = tok; tok2; tok2 = tok2->next )
             {
                 if (tok2->str!=type1 && tok2->str!=type2 && strcmp(tok2->str,type2)==0)
                 {
@@ -563,14 +563,14 @@ void TokenizeCode(std::istream &code, const unsigned int FileIndex)
             const char *type1 = getstr(tok, 1);
             const char *type2 = getstr(tok, 2);
             const char *type3 = getstr(tok, 3);
-            for ( TOKEN *tok2 = tok; tok2; tok2 = tok2->next )
+            for ( Token *tok2 = tok; tok2; tok2 = tok2->next )
             {
                 if (tok2->str!=type3 && strcmp(tok2->str,type3)==0)
                 {
                     free(tok2->str);
                     tok2->str = _strdup(type1);
 
-                    TOKEN *newtok = new TOKEN;
+                    Token *newtok = new Token;
                     newtok->str = _strdup(type2);
                     newtok->FileIndex = tok2->FileIndex;
                     newtok->linenr = tok2->linenr;
@@ -595,7 +595,7 @@ void TokenizeCode(std::istream &code, const unsigned int FileIndex)
 // Helper functions for handling the tokens list
 //---------------------------------------------------------------------------
 
-const TOKEN *gettok(const TOKEN *tok, int index)
+const Token *gettok(const Token *tok, int index)
 {
     while (tok && index>0)
     {
@@ -606,7 +606,7 @@ const TOKEN *gettok(const TOKEN *tok, int index)
 }
 //---------------------------------------------------------------------------
 
-const char *getstr(const TOKEN *tok, int index)
+const char *getstr(const Token *tok, int index)
 {
     tok = gettok(tok, index);
     return tok ? tok->str : "";
@@ -620,7 +620,7 @@ void DeallocateTokens()
 {
     while (tokens)
     {
-        TOKEN *next = tokens->next;
+        Token *next = tokens->next;
         free(tokens->str);
         delete tokens;
         tokens = next;

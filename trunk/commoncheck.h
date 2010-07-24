@@ -27,9 +27,9 @@
 #include <sstream>
 #include <vector>
 
-struct TOKEN;
+struct Token;
 
-std::string FileLine(const TOKEN *tok);
+std::string FileLine(const Token *tok);
 
 // Are two filenames the same? Case insensitive on windows
 bool SameFileName( const char fname1[], const char fname2[] );
@@ -45,8 +45,8 @@ bool IsNumber(const char str[]);
 
 bool IsStandardType(const char str[]);
 
-bool Match(const TOKEN *tok, const char pattern[]);
+bool Match(const Token *tok, const char pattern[]);
 
-void deleteTokens(TOKEN *tok);
+void deleteTokens(Token *tok);
 //---------------------------------------------------------------------------
 #endif

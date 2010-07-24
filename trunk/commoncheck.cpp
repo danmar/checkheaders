@@ -36,7 +36,7 @@ std::ostringstream errout;
 
 //---------------------------------------------------------------------------
 
-std::string FileLine(const TOKEN *tok)
+std::string FileLine(const Token *tok)
 {
     std::ostringstream ostr;
     ostr << "[" << Files[tok->FileIndex] << ":" << tok->linenr << "]";
@@ -99,7 +99,7 @@ bool IsStandardType(const char str[])
 }
 //---------------------------------------------------------------------------
 
-bool Match(const TOKEN *tok, const char pattern[])
+bool Match(const Token *tok, const char pattern[])
 {
     if (!tok)
         return false;
@@ -167,11 +167,11 @@ bool Match(const TOKEN *tok, const char pattern[])
 }
 //---------------------------------------------------------------------------
 
-void deleteTokens(TOKEN *tok)
+void deleteTokens(Token *tok)
 {
     while (tok)
     {
-        TOKEN *next = tok->next;
+        Token *next = tok->next;
         free(tok->str);
         delete tok;
         tok = next;

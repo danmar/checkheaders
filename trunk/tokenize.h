@@ -26,14 +26,14 @@
 
 extern std::vector<std::string> Files;
 
-struct TOKEN
+struct Token
 {
     unsigned int FileIndex;
     char *str;
     unsigned int linenr;
-    struct TOKEN *next;
+    struct Token *next;
 };
-extern struct TOKEN *tokens, *tokens_back;
+extern struct Token *tokens, *tokens_back;
 
 
 void Tokenize(const char FileName[]);
@@ -44,8 +44,8 @@ void TokenizeCode(std::istream &code, const unsigned int FileIndex=0);
 void DeallocateTokens();
 
 // Helper functions for handling the tokens list..
-const TOKEN *gettok(const TOKEN *tok, int index);
-const char *getstr(const TOKEN *tok, int index);
+const Token *gettok(const Token *tok, int index);
+const char *getstr(const Token *tok, int index);
 
 
 //---------------------------------------------------------------------------
