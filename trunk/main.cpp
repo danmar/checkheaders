@@ -168,7 +168,12 @@ int main(int argc, char* argv[])
 
     for (int i = 1; i < argc; i++)
     {
-        if (strchr(argv[i],'*'))
+        if (strcmp(argv[i], "--debug") == 0)
+        {
+            Debug = true;
+        }
+        
+        else if (strchr(argv[i],'*'))
         {
             AddFiles( filenames, "", argv[i] );
         }
@@ -214,6 +219,15 @@ static void CppCheck(const char FileName[], unsigned int FileId)
     tokens = tokens_back = NULL;
     Files.clear();
     Tokenize(FileName);
+
+    // debug output..
+    if (Debug)
+    {
+        std::cout << "debug:";
+        for (const TOKEN *tok = tokens; tok; tok = tok->next)
+            std::cout << " " << tok->str;
+        std::cout << "\n";
+    }
 
     // Including header which is not needed
     WarningIncludeHeader();
