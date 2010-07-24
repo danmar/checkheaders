@@ -595,28 +595,6 @@ void TokenizeCode(std::istream &code, const unsigned int FileIndex)
 // Helper functions for handling the tokens list
 //---------------------------------------------------------------------------
 
-const TOKEN *findtoken(const TOKEN *tok1, const char *tokenstr[])
-{
-    for (const TOKEN *ret = tok1; ret; ret = ret->next)
-    {
-        unsigned int i = 0;
-        const TOKEN *tok = ret;
-        while (tokenstr[i])
-        {
-            if (!tok)
-                return NULL;
-            if (*(tokenstr[i]) && strcmp(tokenstr[i],tok->str))
-                break;
-            tok = tok->next;
-            i++;
-        }
-        if (!tokenstr[i])
-            return ret;
-    }
-    return NULL;
-}
-//---------------------------------------------------------------------------
-
 const TOKEN *gettok(const TOKEN *tok, int index)
 {
     while (tok && index>0)
