@@ -22,9 +22,11 @@
 #define checkheadersH
 //---------------------------------------------------------------------------
 
-void WarningHeaderWithImplementation();
+#include <ostream>
 
-void WarningIncludeHeader();
+void WarningHeaderWithImplementation(std::ostream &errout);
+
+void WarningIncludeHeader(std::ostream &errout);
 
 
 //---------------------------------------------------------------------------

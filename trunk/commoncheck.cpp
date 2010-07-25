@@ -20,7 +20,6 @@
 #include "commoncheck.h"
 #include "tokenize.h"
 #include <stdlib.h>     // free
-#include <iostream>
 #include <sstream>
 #include <list>
 #include <algorithm>
@@ -62,7 +61,7 @@ bool SameFileName( const char fname1[], const char fname2[] )
 
 std::list<std::string> ErrorList;
 
-void ReportErr(const Token *tok, const std::string &id, const std::string &errmsg)
+void ReportErr(const Token *tok, const std::string &id, const std::string &errmsg, std::ostream &errout)
 {
     std::ostringstream ostr;
     if (XmlOutput)
@@ -83,7 +82,7 @@ void ReportErr(const Token *tok, const std::string &id, const std::string &errms
         return;
     ErrorList.push_back(ostr.str());
 
-    std::cerr << ostr.str() << std::endl;
+    errout << ostr.str() << std::endl;
 }
 //---------------------------------------------------------------------------
 
