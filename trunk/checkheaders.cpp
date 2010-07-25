@@ -21,7 +21,7 @@
 #include "tokenize.h"
 #include "commoncheck.h"
 #include <algorithm>
-#include <list>
+#include <set>
 #include <sstream>
 #include <string>
 #include <cstring>
@@ -90,8 +90,8 @@ void WarningIncludeHeader(std::ostream &errout)
         // * It contains some needed variable
         // * It contains some needed enum
 
-        std::list<std::string> classlist;
-        std::list<std::string> namelist;
+        std::set<std::string> classlist;
+        std::set<std::string> namelist;
 
         // Extract classes and names in the header..
         int indentlevel = 0;
@@ -113,21 +113,21 @@ void WarningIncludeHeader(std::ostream &errout)
             // Class or namespace declaration..
             // --------------------------------------
             if (Match(tok1,"class %var% {") || Match(tok1,"class %var% :") || Match(tok1,"namespace %var% {") || Match(tok1,"struct %var% {"))
-                classlist.push_back(getstr(tok1, 1));
+                classlist.insert(getstr(tok1, 1));
 
             // Variable declaration..
             // --------------------------------------
             else if (Match(tok1, "%type% %var% ;") || Match(tok1, "%type% %var% ["))
-                namelist.push_back(getstr(tok1, 1));
+                namelist.insert(getstr(tok1, 1));
 
             else if (Match(tok1, "%type% * %var% ;") || Match(tok1, "%type% * %var% ["))
-                namelist.push_back(getstr(tok1, 2));
+                namelist.insert(getstr(tok1, 2));
 
             else if (Match(tok1, "const %type% %var% =") || Match(tok1, "const %type% %var% ["))
-                namelist.push_back(getstr(tok1, 2));
+                namelist.insert(getstr(tok1, 2));
 
             else if (Match(tok1, "const %type% * %var% =") || Match(tok1, "const %type% * %var% ["))
-                namelist.push_back(getstr(tok1, 3));
+                namelist.insert(getstr(tok1, 3));
 
             // enum..
             // --------------------------------------
@@ -137,7 +137,7 @@ void WarningIncludeHeader(std::ostream &errout)
                 while (tok1->next && tok1->str[0]!=';')
                 {
                     if ( IsName(tok1->str) )
-                        namelist.push_back(tok1->str);
+                        namelist.insert(tok1->str);
                     tok1 = tok1->next;
                 }
             }
@@ -145,16 +145,16 @@ void WarningIncludeHeader(std::ostream &errout)
             // function..  
             // --------------------------------------
             else if (Match(tok1,"%type% %var% ("))
-                namelist.push_back(getstr(tok1, 1));
+                namelist.insert(getstr(tok1, 1));
 
             else if (Match(tok1,"%type% * %var% ("))
-                namelist.push_back(getstr(tok1, 2));
+                namelist.insert(getstr(tok1, 2));
 
             else if (Match(tok1,"const %type% %var% ("))
-                namelist.push_back(getstr(tok1, 2));
+                namelist.insert(getstr(tok1, 2));
 
             else if (Match(tok1,"const %type% * %var% ("))
-                namelist.push_back(getstr(tok1, 3));
+                namelist.insert(getstr(tok1, 3));
 
             // typedef..
             // --------------------------------------
@@ -177,7 +177,7 @@ void WarningIncludeHeader(std::ostream &errout)
                             break;
 
                         if ( Match(tok1, "%var% ;") )
-                            namelist.push_back(tok1->str);
+                            namelist.insert(tok1->str);
                     }
 
                     tok1 = tok1->next;
@@ -187,7 +187,7 @@ void WarningIncludeHeader(std::ostream &errout)
             // #define..
             // --------------------------------------
             else if (Match(tok1, "#define %var%"))
-                namelist.push_back(tok1->next->str);
+                namelist.insert(tok1->next->str);
         }
 
 
@@ -208,8 +208,8 @@ void WarningIncludeHeader(std::ostream &errout)
 
             if ( Match(tok1, ": %var% {") || Match(tok1, ": %type% %var% {") )
             {
-                std::string classname = getstr(tok1, (strcmp(getstr(tok1,2),"{")) ? 2 : 1);
-                if (std::find(classlist.begin(),classlist.end(),classname)!=classlist.end())
+                const std::string classname(getstr(tok1, (strcmp(getstr(tok1,2),"{")) ? 2 : 1));
+                if (classlist.find(classname) != classlist.end())
                 {
                     Needed = true;
                     break;
@@ -218,7 +218,7 @@ void WarningIncludeHeader(std::ostream &errout)
 
             if (Match(tok1, "* %var%"))
             {
-                if (std::find(classlist.begin(), classlist.end(), tok1->str) != classlist.end())
+                if (classlist.find(tok1->str) != classlist.end())
                 {
                     NeedDeclaration = true;
                     tok1 = tok1->next;
@@ -229,8 +229,8 @@ void WarningIncludeHeader(std::ostream &errout)
             if ( ! IsName(tok1->str) )
                 continue;
 
-            if (std::find(namelist.begin(),namelist.end(),tok1->str ) != namelist.end() ||
-                std::find(classlist.begin(), classlist.end(), tok1->str) != classlist.end())
+            if (namelist.find(tok1->str) != namelist.end() ||
+                classlist.find(tok1->str) != classlist.end())
             {
                 Needed = true;
                 break;
