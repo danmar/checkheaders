@@ -44,8 +44,6 @@
 
 // Helper functions..
 
-static void Define(const char Name[], const char Value[]);
-
 static void addtoken(const char str[], const unsigned int lineno, const unsigned int fileno);
 
 static void combine_2tokens(Token *tok, const char str1[], const char str2[]);
@@ -61,71 +59,6 @@ std::vector<std::string> Files;
 struct Token *tokens, *tokens_back;
 
 //---------------------------------------------------------------------------
-
-
-
-
-//---------------------------------------------------------------------------
-// Defined symbols.
-// "#define abc 123" will create a defined symbol "abc" with the value 123
-//---------------------------------------------------------------------------
-
-struct DefineSymbol
-{
-    char *name;
-    char *value;
-    struct DefineSymbol *next;
-};
-static struct DefineSymbol * dsymlist;
-
-static void Define(const char Name[], const char Value[])
-{
-    if (!(Name && Name[0]))
-        return;
-
-    if (!(Value && Value[0]))
-        return;
-
-    // Is 'Value' a decimal value..
-    bool dec = true, hex = true;
-    for (int i = 0; Value[i]; i++)
-    {
-        if ( ! isdigit(Value[i]) )
-            dec = false;
-
-        if ( ! isxdigit(Value[i]) && (!(i==1 && Value[i]=='x')))
-            hex = false;
-    }
-
-    if (!dec && !hex)
-        return;
-
-    char *strValue = _strdup(Value);
-
-    if (!dec && hex)
-    {
-		// Convert Value from hexadecimal to decimal
-		unsigned long value;
-		std::istringstream istr(Value+2);
-		istr >> std::hex >> value;
-		std::ostringstream ostr;
-		ostr << value;
-        free(strValue);
-        strValue = _strdup(ostr.str().c_str());
-    }
-
-    DefineSymbol *NewSym = new DefineSymbol;
-    memset(NewSym, 0, sizeof(DefineSymbol));
-    NewSym->name = _strdup(Name);
-    NewSym->value = strValue;
-    NewSym->next = dsymlist;
-    dsymlist = NewSym;
-}
-//---------------------------------------------------------------------------
-
-
-
-
 
 
 
@@ -163,17 +96,6 @@ static void addtoken(const char str[], const unsigned int lineno, const unsigned
     else
     {
         tokens = tokens_back = newtoken;
-    }
-
-    // Check if str is defined..
-    for (DefineSymbol *sym = dsymlist; sym; sym = sym->next)
-    {
-        if (strcmp(str,sym->name)==0)
-        {
-            free(newtoken->str);
-            newtoken->str = _strdup(sym->value);
-            break;
-        }
     }
 }
 //---------------------------------------------------------------------------
@@ -274,83 +196,45 @@ void TokenizeCode(std::istream &code, const unsigned int FileIndex)
         if (ch == '#' && !CurrentToken[0])
         {
             std::string line;
-            getline(code,line);
-            line = "#" + line;
-            if (strncmp(line.c_str(),"#include",8)==0 &&
-                line.find("\"") != std::string::npos)
+            do
             {
-                // Extract the filename
-                line.erase(0, line.find("\"")+1);
-                line.erase(line.find("\""));
-
-                // Relative path..
-                if (Files.back().find_first_of("\\/") != std::string::npos)
-                {
-                    std::string path = Files.back();
-                    path.erase( 1 + path.find_last_of("\\/") );
-                    line = path + line;
-                }
-
-                addtoken("#include", lineno, FileIndex);
-                addtoken(line.c_str(), lineno, FileIndex);
-
-                Tokenize(line.c_str());
+                line += ch;
+                ch = (char)code.get();
             }
+            while (!code.eof() && isalpha(ch));
 
-            else if (strncmp(line.c_str(), "#define", 7) == 0)
+            if (line.compare(0, 8, "#include")==0)
             {
-                char *strId = NULL;
-                enum {Space1, Id, Space2, Value} State;
-                State = Space1;
-                for (unsigned int i = 8; i < line.length(); i++)
+                getline(code, line);
+                if (line.find("\"") != std::string::npos)
                 {
-                    if (State==Space1 || State==Space2)
+                    // Extract the filename
+                    line.erase(0, line.find("\"")+1);
+                    line.erase(line.find("\""));
+
+                    // Relative path..
+                    if (Files.back().find_first_of("\\/") != std::string::npos)
                     {
-                        if (isspace(line[i]))
-                            continue;
-                        State = (State==Space1) ? Id : Value;
+                        std::string path = Files.back();
+                        path.erase( 1 + path.find_last_of("\\/") );
+                        line = path + line;
                     }
 
-                    else if (State==Id)
-                    {
-                        if ( isspace( line[i] ) )
-                        {
-                            strId = _strdup(CurrentToken);
-                            memset(CurrentToken, 0, sizeof(CurrentToken));
-                            pToken = CurrentToken;
-                            State = Space2;
-                            continue;
-                        }
-                        else if ( ! isalnum(line[i]) )
-                        {
-                            break;
-                        }
-                    }
+                    addtoken("#include", lineno, FileIndex);
+                    addtoken(line.c_str(), lineno, FileIndex);
 
-                    *pToken = line[i];
-                    pToken++;
+                    Tokenize(line.c_str());
                 }
-
-                if (State==Value)
-                {
-                    addtoken("def", lineno, FileIndex);
-                    addtoken(strId, lineno, FileIndex);
-                    addtoken(";", lineno, FileIndex);
-                    Define(strId, CurrentToken);
-                }
-
-                pToken = CurrentToken;
-                memset(CurrentToken, 0, sizeof(CurrentToken));
-                free(strId);
+                ++lineno;
             }
 
             else
             {
-                addtoken("#", lineno, FileIndex);
-                addtoken(";", lineno, FileIndex);
+                addtoken(line.c_str(), lineno, FileIndex);
+                pToken = CurrentToken;
+                memset(CurrentToken, 0, sizeof(CurrentToken));
             }
 
-            lineno++;
             continue;
         }
 
@@ -626,15 +510,6 @@ void DeallocateTokens()
         tokens = next;
     }
     tokens_back = tokens;
-
-    while (dsymlist)
-    {
-        struct DefineSymbol *next = dsymlist->next;
-        free(dsymlist->name);
-        free(dsymlist->value);
-        delete dsymlist;
-        dsymlist = next; 
-    }
 }
 
 

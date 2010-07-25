@@ -183,6 +183,11 @@ void WarningIncludeHeader(std::ostream &errout)
                     tok1 = tok1->next;
                 }
             }
+
+            // #define..
+            // --------------------------------------
+            else if (Match(tok1, "#define %var%"))
+                namelist.push_back(tok1->next->str);
         }
 
 
