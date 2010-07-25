@@ -34,9 +34,9 @@ public:
     }
 
 private:
-
     void run()
     {
+        TEST_CASE(issue3);
         TEST_CASE(test1);
     }
 
@@ -67,6 +67,33 @@ private:
         DeallocateTokens();
 
         ASSERT_EQUALS("[a.h:1] (style): The included header 'fred.h' is not needed\n", errout.str());
+    }
+
+    void issue3()
+    {
+        {
+            std::ofstream f1("a.c");
+            f1 << "#include \"fred.h\"\n"
+               << "struct APP_INIT_DATA {\n"
+               << "  PROXY_INFO proxy_info;\n"
+               << "};\n";
+
+            std::ofstream f2("a.h");
+            f2 << "struct PROXY_INFO { bool use_http_proxy; };\n";
+        }
+
+        tokens = tokens_back = NULL;
+        Files.clear();
+        Tokenize("a.c");
+
+        // Including header which is not needed
+        std::ostringstream errout;
+        WarningIncludeHeader(errout);
+
+        // Clean up tokens..
+        DeallocateTokens();
+
+        ASSERT_EQUALS("", errout.str());
     }
 };
 

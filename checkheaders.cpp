@@ -106,13 +106,13 @@ void WarningIncludeHeader(std::ostream &errout)
 
             else if (tok1->str[0] == '}')
                 indentlevel--;
-                
+
             if (indentlevel != 0)
                 continue;
 
             // Class or namespace declaration..
             // --------------------------------------
-            if (Match(tok1,"class %var% {") || Match(tok1,"class %var% :") || Match(tok1,"namespace %var% {"))
+            if (Match(tok1,"class %var% {") || Match(tok1,"class %var% :") || Match(tok1,"namespace %var% {") || Match(tok1,"struct %var% {"))
                 classlist.push_back(getstr(tok1, 1));
 
             // Variable declaration..
@@ -211,23 +211,26 @@ void WarningIncludeHeader(std::ostream &errout)
                 }
             }
 
+            if (Match(tok1, "* %var%"))
+            {
+                if (std::find(classlist.begin(), classlist.end(), tok1->str) != classlist.end())
+                {
+                    NeedDeclaration = true;
+                    tok1 = tok1->next;
+                    continue;
+                }
+            }
+
             if ( ! IsName(tok1->str) )
                 continue;
 
-            if (std::find(namelist.begin(),namelist.end(),tok1->str ) != namelist.end())
+            if (std::find(namelist.begin(),namelist.end(),tok1->str ) != namelist.end() ||
+                std::find(classlist.begin(), classlist.end(), tok1->str) != classlist.end())
             {
                 Needed = true;
                 break;
             }
-
-            if ( ! NeedDeclaration )
-                NeedDeclaration = (std::find(classlist.begin(),classlist.end(),tok1->str ) != classlist.end());
         }
-
-        
-        // Not a header file?
-        if (includetok->FileIndex == 0)
-            Needed |= NeedDeclaration;
 
         // Not needed!
         if (!Needed)
