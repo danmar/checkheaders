@@ -34,7 +34,7 @@
 // HEADERS - No implementation in a header
 //---------------------------------------------------------------------------
 
-void WarningHeaderWithImplementation()
+void WarningHeaderWithImplementation(std::ostream &errout)
 {
     for (const Token *tok = tokens; tok; tok = tok->next)
     {
@@ -46,7 +46,7 @@ void WarningHeaderWithImplementation()
         {
             std::ostringstream ostr;
             ostr << "Found implementation in header";
-            ReportErr(tok, __FUNCTION__, ostr.str());
+            ReportErr(tok, __FUNCTION__, ostr.str(), errout);
         }
     }
 }
@@ -63,7 +63,7 @@ void WarningHeaderWithImplementation()
 // HEADERS - Unneeded include
 //---------------------------------------------------------------------------
 
-void WarningIncludeHeader()
+void WarningIncludeHeader(std::ostream &errout)
 {
     // Including..
     for (const Token *includetok = tokens; includetok; includetok = includetok->next)
@@ -236,7 +236,7 @@ void WarningIncludeHeader()
             ostr << "The included header '" << includefile << "' is not needed";
             if (NeedDeclaration)
                 ostr << " (but a forward declaration is needed)";
-            ReportErr(includetok, __FUNCTION__, ostr.str());
+            ReportErr(includetok, __FUNCTION__, ostr.str(), errout);
         }
     }
 }

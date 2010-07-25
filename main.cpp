@@ -239,7 +239,7 @@ static void CppCheck(const char FileName[], unsigned int FileId)
     }
 
     // Including header which is not needed
-    WarningIncludeHeader();
+    WarningIncludeHeader(std::cerr);
 
     // Clean up tokens..
     DeallocateTokens();
