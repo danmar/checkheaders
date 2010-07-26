@@ -39,8 +39,6 @@
 
 static void combine_2tokens(Token *tok, const char str1[], const char str2[]);
 
-static void DeleteNextToken(Token *tok);
-
 //---------------------------------------------------------------------------
 
 //---------------------------------------------------------------------------
@@ -103,28 +101,13 @@ static void combine_2tokens(Token *tok, const char str1[], const char str2[])
 	std::string newstr(std::string(str1) + std::string(str2));
 	tok->str = strdup( newstr.c_str() );
 
-    DeleteNextToken(tok);
-}
-//---------------------------------------------------------------------------
-
-
-
-
-//---------------------------------------------------------------------------
-// DeleteNextToken. Unlink and delete next token.
-//---------------------------------------------------------------------------
-
-static void DeleteNextToken(Token *tok)
-{
+    // Delete next token
     Token *next = tok->next;
     tok->next = next->next;
     free(next->str);
     delete next;
 }
 //---------------------------------------------------------------------------
-
-
-
 
 
 //---------------------------------------------------------------------------
