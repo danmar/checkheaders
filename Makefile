@@ -1,4 +1,4 @@
-SRCS=checkheaders.cpp  commoncheck.cpp  tokenize.cpp
+SRCS=checkheaders.cpp	commoncheck.cpp	filelister.cpp	tokenize.cpp
 OBJS=$(SRCS:%.cpp=%.o)
 CXX=g++
 
