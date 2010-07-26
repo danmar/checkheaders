@@ -194,17 +194,27 @@ void WarningIncludeHeader(const Tokenizer &tokenizer, bool XmlOutput, std::ostre
         // Check if the extracted names are used...
         bool Needed = false;
         bool NeedDeclaration = false;
+        indentlevel = 0;
         for (const Token *tok1 = tokenizer.tokens; tok1; tok1 = tok1->next)
         {
             if (tok1->FileIndex != includetok->FileIndex)
                 continue;
 
             // implementation begins..
-            if (Match(tok1, ") {") || Match(tok1, ") const {"))
+            if (indentlevel == 0 && (Match(tok1, ") {") || Match(tok1, ") const {")))
             {
-                Needed = true;
-                break;
+                // Go to the "{"
+                while (tok1->str[0] != '{')
+                    tok1 = tok1->next;
+                indentlevel = 1;
 			}
+            else if (indentlevel >= 1)
+            {
+                if (tok1->str[0] == '{')
+                    ++indentlevel;
+                else if (tok1->str[0] == '}')
+                    --indentlevel;
+            }
 
             if ( Match(tok1, ": %var% {") || Match(tok1, ": %type% %var% {") )
             {
@@ -216,7 +226,7 @@ void WarningIncludeHeader(const Tokenizer &tokenizer, bool XmlOutput, std::ostre
                 }
             }
 
-            if (Match(tok1, "* %var%"))
+            if (indentlevel == 0 && Match(tok1, "* %var%"))
             {
                 if (classlist.find(tok1->str) != classlist.end())
                 {
