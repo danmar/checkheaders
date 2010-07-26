@@ -34,9 +34,9 @@
 // HEADERS - No implementation in a header
 //---------------------------------------------------------------------------
 
-void WarningHeaderWithImplementation(std::ostream &errout)
+void WarningHeaderWithImplementation(const Tokenizer &tokenizer, bool XmlOutput, std::ostream &errout)
 {
-    for (const Token *tok = tokens; tok; tok = tok->next)
+    for (const Token *tok = tokenizer.tokens; tok; tok = tok->next)
     {
         // Only interested in included file
         if (tok->FileIndex == 0)
@@ -46,7 +46,7 @@ void WarningHeaderWithImplementation(std::ostream &errout)
         {
             std::ostringstream ostr;
             ostr << "Found implementation in header";
-            ReportErr(tok, __FUNCTION__, ostr.str(), errout);
+            ReportErr(tokenizer, XmlOutput, tok, __FUNCTION__, ostr.str(), errout);
         }
     }
 }
@@ -63,10 +63,10 @@ void WarningHeaderWithImplementation(std::ostream &errout)
 // HEADERS - Unneeded include
 //---------------------------------------------------------------------------
 
-void WarningIncludeHeader(std::ostream &errout)
+void WarningIncludeHeader(const Tokenizer &tokenizer, bool XmlOutput, std::ostream &errout)
 {
     // Including..
-    for (const Token *includetok = tokens; includetok; includetok = includetok->next)
+    for (const Token *includetok = tokenizer.tokens; includetok; includetok = includetok->next)
     {
         if (strcmp(includetok->str, "#include") != 0)
             continue;
@@ -74,13 +74,13 @@ void WarningIncludeHeader(std::ostream &errout)
         // Get fileindex of included file..
         unsigned int hfile = 0;
         const char *includefile = includetok->next->str;
-        while (hfile < Files.size())
+        while (hfile < tokenizer.Files.size())
         {
-            if ( SameFileName( Files[hfile].c_str(), includefile ) )
+            if ( SameFileName( tokenizer.Files[hfile].c_str(), includefile ) )
                 break;
             hfile++;
         }
-        if (hfile == Files.size())
+        if (hfile == tokenizer.Files.size())
             continue;
 
         // This header is needed if:
@@ -95,7 +95,7 @@ void WarningIncludeHeader(std::ostream &errout)
 
         // Extract classes and names in the header..
         int indentlevel = 0;
-        for (const Token *tok1 = tokens; tok1; tok1 = tok1->next )
+        for (const Token *tok1 = tokenizer.tokens; tok1; tok1 = tok1->next )
         {
             if ( tok1->FileIndex != hfile )
                 continue;
@@ -194,7 +194,7 @@ void WarningIncludeHeader(std::ostream &errout)
         // Check if the extracted names are used...
         bool Needed = false;
         bool NeedDeclaration = false;
-        for (const Token *tok1 = tokens; tok1; tok1 = tok1->next)
+        for (const Token *tok1 = tokenizer.tokens; tok1; tok1 = tok1->next)
         {
             if (tok1->FileIndex != includetok->FileIndex)
                 continue;
@@ -244,7 +244,7 @@ void WarningIncludeHeader(std::ostream &errout)
             ostr << "The included header '" << includefile << "' is not needed";
             if (NeedDeclaration)
                 ostr << " (but a forward declaration is needed)";
-            ReportErr(includetok, __FUNCTION__, ostr.str(), errout);
+            ReportErr(tokenizer, XmlOutput, includetok, __FUNCTION__, ostr.str(), errout);
         }
     }
 }
