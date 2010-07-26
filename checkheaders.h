@@ -22,11 +22,12 @@
 #define checkheadersH
 //---------------------------------------------------------------------------
 
+#include "tokenize.h"
 #include <ostream>
 
-void WarningHeaderWithImplementation(std::ostream &errout);
+void WarningHeaderWithImplementation(const Tokenizer &tokenizer, bool XmlOutput, std::ostream &errout);
 
-void WarningIncludeHeader(std::ostream &errout);
+void WarningIncludeHeader(const Tokenizer &tokenizer, bool XmlOutput, std::ostream &errout);
 
 
 //---------------------------------------------------------------------------

@@ -47,13 +47,11 @@
 #include <windows.h>
 #endif
 
-//---------------------------------------------------------------------------
-bool Debug = false;
-bool XmlOutput = false;
-//---------------------------------------------------------------------------
+
+static bool Debug;      /// --debug
+static bool XmlOutput;  /// --xml
 
 static void CppCheck(const char FileName[], unsigned int FileId);
-
 
 static void AddFiles( std::vector<std::string> &filenames, const char path[], const char pattern[] )
 {
@@ -225,24 +223,19 @@ static void CppCheck(const char FileName[], unsigned int FileId)
     std::cout << "Checking " << FileName << "...\n";
 
     // Tokenize the file
-    tokens = tokens_back = NULL;
-    Files.clear();
-    Tokenize(FileName);
+    const Tokenizer tokenizer(FileName);
 
     // debug output..
     if (Debug)
     {
         std::cout << "debug:";
-        for (const Token *tok = tokens; tok; tok = tok->next)
+        for (const Token *tok = tokenizer.tokens; tok; tok = tok->next)
             std::cout << " " << tok->str;
         std::cout << "\n";
     }
 
     // Including header which is not needed
-    WarningIncludeHeader(std::cerr);
-
-    // Clean up tokens..
-    DeallocateTokens();
+    WarningIncludeHeader(tokenizer, XmlOutput, std::cerr);
 }
 //---------------------------------------------------------------------------
 

@@ -22,6 +22,8 @@
 #define CommonCheckH
 //---------------------------------------------------------------------------
 
+#include "tokenize.h"
+
 #include <list>
 #include <string>
 #include <sstream>
@@ -32,7 +34,7 @@ struct Token;
 // Are two filenames the same? Case insensitive on windows
 bool SameFileName( const char fname1[], const char fname2[] );
 
-void ReportErr(const Token *tok, const std::string &id, const std::string &errmsg, std::ostream &errout);
+void ReportErr(const Tokenizer &tokenizer, bool XmlOutput, const Token *tok, const std::string &id, const std::string &errmsg, std::ostream &errout);
 
 bool IsName(const char str[]);
 bool IsNumber(const char str[]);

@@ -22,16 +22,11 @@
 #include <fstream>
 #include <sstream>
 
-// TODO: Remove this
-bool XmlOutput;
-
 class TestWarningIncludeHeaders : public TestFixture
 {
 public:
     TestWarningIncludeHeaders() : TestFixture("TestWarningIncludeHeaders")
-    {
-        XmlOutput = false;
-    }
+    { }
 
 private:
     void run()
@@ -54,16 +49,11 @@ private:
             f2 << "struct PROXY_INFO { bool use_http_proxy; };\n";
         }
 
-        tokens = tokens_back = NULL;
-        Files.clear();
-        Tokenize("issue3.c");
+        const Tokenizer tokenizer("issue3.c");
 
         // Including header which is not needed
         std::ostringstream errout;
-        WarningIncludeHeader(errout);
-
-        // Clean up tokens..
-        DeallocateTokens();
+        WarningIncludeHeader(tokenizer, false, errout);
 
         ASSERT_EQUALS("", errout.str());
     }
@@ -79,20 +69,15 @@ private:
             f2 << "#define __attribute__(x)\n";
         }
 
-        tokens = tokens_back = NULL;
-        Files.clear();
-        Tokenize("needed_define.c");
+        const Tokenizer tokenizer("needed_define.c");
 
         // Including header which is not needed
         std::ostringstream errout;
-        WarningIncludeHeader(errout);
-
-        // Clean up tokens..
-        DeallocateTokens();
+        WarningIncludeHeader(tokenizer, false, errout);
 
         ASSERT_EQUALS("", errout.str());
     }
-    
+
     void test1()
     {
         {
@@ -103,16 +88,11 @@ private:
             f2 << "class Fred { };\n";
         }
 
-        tokens = tokens_back = NULL;
-        Files.clear();
-        Tokenize("test1.c");
+        const Tokenizer tokenizer("test1.c");
 
         // Including header which is not needed
         std::ostringstream errout;
-        WarningIncludeHeader(errout);
-
-        // Clean up tokens..
-        DeallocateTokens();
+        WarningIncludeHeader(tokenizer, false, errout);
 
         ASSERT_EQUALS("[test1.c:1] (style): The included header 'test1.h' is not needed\n", errout.str());
     }

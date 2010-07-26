@@ -24,8 +24,6 @@
 #include <string>
 #include <vector>
 
-extern std::vector<std::string> Files;
-
 struct Token
 {
     unsigned int FileIndex;
@@ -33,15 +31,25 @@ struct Token
     unsigned int linenr;
     struct Token *next;
 };
-extern struct Token *tokens, *tokens_back;
 
+class Tokenizer
+{
+private:
+    struct Token * tokens_back;
 
-void Tokenize(const char FileName[]);
+    void tokenize(const char FileName[]);
+    void tokenizeCode(std::istream &code, const unsigned int FileIndex=0);
 
-void TokenizeCode(std::istream &code, const unsigned int FileIndex=0);
+    void addtoken(const char str[], const unsigned int lineno, const unsigned int fileno);
 
-// Deallocate lists..
-void DeallocateTokens();
+public:
+    Tokenizer(const char FileName[]);
+    ~Tokenizer();
+
+    struct Token * tokens;
+    std::vector<std::string> Files;
+};
+
 
 // Helper functions for handling the tokens list..
 const Token *gettok(const Token *tok, int index);

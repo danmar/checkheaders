@@ -34,14 +34,6 @@ extern bool XmlOutput;
 
 //---------------------------------------------------------------------------
 
-static std::string FileLine(const Token *tok)
-{
-    std::ostringstream ostr;
-    ostr << "[" << Files[tok->FileIndex] << ":" << tok->linenr << "]";
-    return ostr.str();
-}
-//---------------------------------------------------------------------------
-
 bool SameFileName( const char fname1[], const char fname2[] )
 {
 #ifdef __linux__
@@ -61,12 +53,12 @@ bool SameFileName( const char fname1[], const char fname2[] )
 
 std::list<std::string> ErrorList;
 
-void ReportErr(const Token *tok, const std::string &id, const std::string &errmsg, std::ostream &errout)
+void ReportErr(const Tokenizer &tokenizer, bool XmlOutput, const Token *tok, const std::string &id, const std::string &errmsg, std::ostream &errout)
 {
     std::ostringstream ostr;
     if (XmlOutput)
     {
-        ostr << "<error file=\"" << Files[tok->FileIndex] << "\""
+        ostr << "<error file=\"" << tokenizer.Files[tok->FileIndex] << "\""
              << " line=\"" << tok->linenr << "\""
              << " severity=\"style\""
              << " id=\"" << id << "\""
@@ -74,7 +66,7 @@ void ReportErr(const Token *tok, const std::string &id, const std::string &errms
     }
     else
     {
-        ostr << FileLine(tok) << " (style): " << errmsg;
+        ostr << "[" << tokenizer.Files[tok->FileIndex] << ":" << tok->linenr << "]" << " (style): " << errmsg;
     }
 
     // Avoid duplicate error messages..
