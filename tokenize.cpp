@@ -63,7 +63,7 @@ void Tokenizer::addtoken(const char str[], const unsigned int lineno, const unsi
 	}
 
     Token *newtoken  = new Token;
-    memset(newtoken, 0, sizeof(Token));
+    std::memset(newtoken, 0, sizeof(Token));
     newtoken->str    = strdup(str2.str().c_str());
     newtoken->linenr = lineno;
     newtoken->FileIndex = fileno;
@@ -183,7 +183,7 @@ void Tokenizer::tokenizeCode(std::istream &code, const unsigned int FileIndex)
                 line += ch;
                 ch = (char)code.get();
             }
-            while (!code.eof() && isalpha(ch));
+            while (!code.eof() && std::isalpha(ch));
 
             if (line.compare(0, 8, "#include")==0)
             {
@@ -214,7 +214,7 @@ void Tokenizer::tokenizeCode(std::istream &code, const unsigned int FileIndex)
             {
                 addtoken(line.c_str(), lineno, FileIndex);
                 pToken = CurrentToken;
-                memset(CurrentToken, 0, sizeof(CurrentToken));
+                std::memset(CurrentToken, 0, sizeof(CurrentToken));
             }
 
             continue;
@@ -224,7 +224,7 @@ void Tokenizer::tokenizeCode(std::istream &code, const unsigned int FileIndex)
         {
             // Add current token..
             addtoken(CurrentToken, lineno++, FileIndex);
-            memset(CurrentToken, 0, sizeof(CurrentToken));
+            std::memset(CurrentToken, 0, sizeof(CurrentToken));
             pToken = CurrentToken;
             continue;
         }
@@ -236,7 +236,7 @@ void Tokenizer::tokenizeCode(std::istream &code, const unsigned int FileIndex)
 
             // Add current token..
             addtoken(CurrentToken, lineno, FileIndex);
-            memset(CurrentToken, 0, sizeof(CurrentToken));
+            std::memset(CurrentToken, 0, sizeof(CurrentToken));
             pToken = CurrentToken;
 
             // Read next character..
@@ -293,7 +293,7 @@ void Tokenizer::tokenizeCode(std::istream &code, const unsigned int FileIndex)
         {
             // Add previous token
             addtoken(CurrentToken, lineno, FileIndex);
-            memset(CurrentToken, 0, sizeof(CurrentToken));
+            std::memset(CurrentToken, 0, sizeof(CurrentToken));
 
             // Read this ..
             CurrentToken[0] = ch;
@@ -304,7 +304,7 @@ void Tokenizer::tokenizeCode(std::istream &code, const unsigned int FileIndex)
 
             // Add token and start on next..
             addtoken(CurrentToken, lineno, FileIndex);
-            memset(CurrentToken, 0, sizeof(CurrentToken));
+            std::memset(CurrentToken, 0, sizeof(CurrentToken));
             pToken = CurrentToken;
 
             continue;
@@ -314,7 +314,7 @@ void Tokenizer::tokenizeCode(std::istream &code, const unsigned int FileIndex)
         if (ch == '\"')
         {
             addtoken(CurrentToken, lineno, FileIndex);
-            memset(CurrentToken, 0, sizeof(CurrentToken));
+            std::memset(CurrentToken, 0, sizeof(CurrentToken));
             pToken = CurrentToken;
             bool special = false;
             char c = ch;
@@ -339,7 +339,7 @@ void Tokenizer::tokenizeCode(std::istream &code, const unsigned int FileIndex)
             while (!code.eof() && (special || c != '\"'));
             *pToken = '\"';
             addtoken(CurrentToken, lineno, FileIndex);
-            memset(CurrentToken, 0, sizeof(CurrentToken));
+            std::memset(CurrentToken, 0, sizeof(CurrentToken));
             pToken = CurrentToken;
             continue;
         }
@@ -347,20 +347,20 @@ void Tokenizer::tokenizeCode(std::istream &code, const unsigned int FileIndex)
         if (strchr("+-*/%&|^?!=<>[](){};:,.",ch))
         {
             addtoken(CurrentToken, lineno, FileIndex);
-            memset(CurrentToken, 0, sizeof(CurrentToken));
+            std::memset(CurrentToken, 0, sizeof(CurrentToken));
             CurrentToken[0] = ch;
             addtoken(CurrentToken, lineno, FileIndex);
-            memset(CurrentToken, 0, sizeof(CurrentToken));
+            std::memset(CurrentToken, 0, sizeof(CurrentToken));
             pToken = CurrentToken;
             continue;
         }
 
 
-        if (isspace(ch) || iscntrl(ch))
+        if (std::isspace(ch) || std::iscntrl(ch))
         {
             addtoken(CurrentToken, lineno, FileIndex);
             pToken = CurrentToken;
-            memset(CurrentToken, 0, sizeof(CurrentToken));
+            std::memset(CurrentToken, 0, sizeof(CurrentToken));
             continue;
         }
 

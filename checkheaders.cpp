@@ -46,7 +46,7 @@ void WarningHeaderWithImplementation(const Tokenizer &tokenizer, bool XmlOutput,
         {
             std::ostringstream ostr;
             ostr << "Found implementation in header";
-            ReportErr(tokenizer, XmlOutput, tok, __FUNCTION__, ostr.str(), errout);
+            ReportErr(tokenizer, XmlOutput, tok, "HeaderWithImplementation", ostr.str(), errout);
         }
     }
 }
@@ -244,7 +244,7 @@ void WarningIncludeHeader(const Tokenizer &tokenizer, bool XmlOutput, std::ostre
             ostr << "The included header '" << includefile << "' is not needed";
             if (NeedDeclaration)
                 ostr << " (but a forward declaration is needed)";
-            ReportErr(tokenizer, XmlOutput, includetok, __FUNCTION__, ostr.str(), errout);
+            ReportErr(tokenizer, XmlOutput, includetok, "HeaderNotNeeded", ostr.str(), errout);
         }
     }
 }
