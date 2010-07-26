@@ -31,9 +31,62 @@ public:
 private:
     void run()
     {
+        TEST_CASE(implementation1);
+        TEST_CASE(implementation2);
         TEST_CASE(issue3);
         TEST_CASE(needed_define);
         TEST_CASE(test1);
+    }
+
+    void implementation1()
+    {
+        // Call function in header
+        {
+            std::ofstream f1("implementation1.c");
+            f1 << "#include \"implementation1.h\"\n"
+               << "void f()\n"
+               << "{\n"
+               << "    hello();\n"
+               << "}\n";
+
+            std::ofstream f2("implementation1.h");
+            f2 << "void hello()\n"
+               << "{\n"
+               << "}\n";
+        }
+        
+        const Tokenizer tokenizer("implementation1.c");
+
+        // Including header which is not needed
+        std::ostringstream errout;
+        WarningIncludeHeader(tokenizer, false, errout);
+
+        ASSERT_EQUALS("", errout.str());
+    }
+    
+    void implementation2()
+    {
+        // header not needed
+        {
+            std::ofstream f1("implementation2.c");
+            f1 << "#include \"implementation2.h\"\n"
+               << "void f()\n"
+               << "{\n"
+               << "}\n";
+
+            std::ofstream f2("implementation2.h");
+            f2 << "void hello()\n"
+               << "{\n"
+               << "}\n";
+        }
+        
+        const Tokenizer tokenizer("implementation2.c");
+
+        // Including header which is not needed
+        std::ostringstream errout;
+        WarningIncludeHeader(tokenizer, false, errout);
+
+        ASSERT_EQUALS("[implementation2.c:1] (style): The included header 'implementation2.h' is not needed\n", errout.str());
     }
 
     void issue3()
