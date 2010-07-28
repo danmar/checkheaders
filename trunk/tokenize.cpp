@@ -441,46 +441,6 @@ void Tokenizer::tokenizeCode(std::istream &code, const unsigned int FileIndex, c
 			tok->str[1] = 0;
         }
     }
-
-    // typedef..
-    for ( Token *tok = tokens; tok; tok = tok->next )
-    {
-        if (Match(tok, "typedef %type% %type% ;"))
-        {
-            const char *type1 = getstr(tok, 1);
-            const char *type2 = getstr(tok, 2);
-            for ( Token *tok2 = tok; tok2; tok2 = tok2->next )
-            {
-                if (tok2->str!=type1 && tok2->str!=type2 && strcmp(tok2->str,type2)==0)
-                {
-                    free(tok2->str);
-                    tok2->str = strdup(type1);
-                }
-            }
-        }
-
-        else if (Match(tok, "typedef %type% %type% %type% ;"))
-        {
-            const char *type1 = getstr(tok, 1);
-            const char *type2 = getstr(tok, 2);
-            const char *type3 = getstr(tok, 3);
-            for ( Token *tok2 = tok; tok2; tok2 = tok2->next )
-            {
-                if (tok2->str!=type3 && strcmp(tok2->str,type3)==0)
-                {
-                    free(tok2->str);
-                    tok2->str = strdup(type1);
-
-                    Token *newtok = new Token;
-                    newtok->str = strdup(type2);
-                    newtok->FileIndex = tok2->FileIndex;
-                    newtok->linenr = tok2->linenr;
-                    newtok->next = tok2->next;
-                    tok2->next = newtok;
-                }
-            }
-        }
-    }
 }
 //---------------------------------------------------------------------------
 
