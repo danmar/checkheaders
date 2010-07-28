@@ -22,8 +22,6 @@
 
 #include <sstream>
 
-class Token;
-
 class TestFixture
 {
 private:
