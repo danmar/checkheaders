@@ -59,12 +59,13 @@ private:
                << "{\n"
                << "}\n";
         }
+
+        std::ostringstream errout;
         
         Tokenizer tokenizer;
-        tokenizer.tokenize("implementation1.c", includePaths);
+        tokenizer.tokenize("implementation1.c", includePaths, false, errout);
 
         // Including header which is not needed
-        std::ostringstream errout;
         WarningIncludeHeader(tokenizer, false, errout);
 
         ASSERT_EQUALS("", errout.str());
@@ -86,11 +87,12 @@ private:
                << "}\n";
         }
         
+        std::ostringstream errout;
+
         Tokenizer tokenizer;
-        tokenizer.tokenize("implementation2.c", includePaths);
+        tokenizer.tokenize("implementation2.c", includePaths, false, errout);
 
         // Including header which is not needed
-        std::ostringstream errout;
         WarningIncludeHeader(tokenizer, false, errout);
 
         ASSERT_EQUALS("[implementation2.c:1] (style): The included header 'implementation2.h' is not needed\n", errout.str());
@@ -109,11 +111,12 @@ private:
             f2 << "struct PROXY_INFO { bool use_http_proxy; };\n";
         }
 
+        std::ostringstream errout;
+        
         Tokenizer tokenizer;
-        tokenizer.tokenize("issue3.c", includePaths);
+        tokenizer.tokenize("issue3.c", includePaths, false, errout);
 
         // Including header which is not needed
-        std::ostringstream errout;
         WarningIncludeHeader(tokenizer, false, errout);
 
         ASSERT_EQUALS("", errout.str());
@@ -130,11 +133,12 @@ private:
             f2 << "#define __attribute__(x)\n";
         }
 
+        std::ostringstream errout;
+
         Tokenizer tokenizer;
-        tokenizer.tokenize("needed_define.c", includePaths);
+        tokenizer.tokenize("needed_define.c", includePaths, false, errout);
 
         // Including header which is not needed
-        std::ostringstream errout;
         WarningIncludeHeader(tokenizer, false, errout);
 
         ASSERT_EQUALS("", errout.str());
@@ -152,11 +156,12 @@ private:
             f2 << "typedef unsigned int U32;\n";
         }
 
+        std::ostringstream errout;
+
         Tokenizer tokenizer;
-        tokenizer.tokenize("needed_typedef.c", includePaths);
+        tokenizer.tokenize("needed_typedef.c", includePaths, false, errout);
 
         // Including header which is not needed
-        std::ostringstream errout;
         WarningIncludeHeader(tokenizer, false, errout);
 
         ASSERT_EQUALS("", errout.str());
@@ -172,11 +177,12 @@ private:
             f2 << "#include <stdio.h>\n";       // stdafx.h needs all included headers
         }
 
+        std::ostringstream errout;
+
         Tokenizer tokenizer;
-        tokenizer.tokenize("stdafx.c", includePaths);
+        tokenizer.tokenize("stdafx.c", includePaths, false, errout);
 
         // Including header which is not needed
-        std::ostringstream errout;
         WarningIncludeHeader(tokenizer, false, errout);
 
         ASSERT_EQUALS("", errout.str());
@@ -192,11 +198,12 @@ private:
             f2 << "class Fred { };\n";
         }
 
+        std::ostringstream errout;
+
         Tokenizer tokenizer;
-        tokenizer.tokenize("test1.c", includePaths);
+        tokenizer.tokenize("test1.c", includePaths, false, errout);
 
         // Including header which is not needed
-        std::ostringstream errout;
         WarningIncludeHeader(tokenizer, false, errout);
 
         ASSERT_EQUALS("[test1.c:1] (style): The included header 'test1.h' is not needed\n", errout.str());
