@@ -64,7 +64,7 @@ private:
         std::ostringstream errout;
         
         Tokenizer tokenizer;
-        tokenizer.tokenize("implementation1.c", false, includePaths, false, errout);
+        tokenizer.tokenize("implementation1.c", includePaths, false, errout);
 
         // Including header which is not needed
         WarningIncludeHeader(tokenizer, false, errout);
@@ -91,7 +91,7 @@ private:
         std::ostringstream errout;
 
         Tokenizer tokenizer;
-        tokenizer.tokenize("implementation2.c", false, includePaths, false, errout);
+        tokenizer.tokenize("implementation2.c", includePaths, false, errout);
 
         // Including header which is not needed
         WarningIncludeHeader(tokenizer, false, errout);
@@ -115,7 +115,7 @@ private:
         std::ostringstream errout;
         
         Tokenizer tokenizer;
-        tokenizer.tokenize("issue3.c", false, includePaths, false, errout);
+        tokenizer.tokenize("issue3.c", includePaths, false, errout);
 
         // Including header which is not needed
         WarningIncludeHeader(tokenizer, false, errout);
@@ -137,7 +137,7 @@ private:
         std::ostringstream errout;
 
         Tokenizer tokenizer;
-        tokenizer.tokenize("needed_define.c", false, includePaths, false, errout);
+        tokenizer.tokenize("needed_define.c", includePaths, false, errout);
 
         // Including header which is not needed
         WarningIncludeHeader(tokenizer, false, errout);
@@ -160,7 +160,7 @@ private:
         std::ostringstream errout;
 
         Tokenizer tokenizer;
-        tokenizer.tokenize("needed_typedef.c", false, includePaths, false, errout);
+        tokenizer.tokenize("needed_typedef.c", includePaths, false, errout);
 
         // Including header which is not needed
         WarningIncludeHeader(tokenizer, false, errout);
@@ -181,7 +181,7 @@ private:
         std::ostringstream errout;
 
         Tokenizer tokenizer;
-        tokenizer.tokenize("stdafx.c", false, includePaths, false, errout);
+        tokenizer.tokenize("stdafx.c", includePaths, false, errout);
 
         // Including header which is not needed
         WarningIncludeHeader(tokenizer, false, errout);
@@ -202,7 +202,7 @@ private:
         std::ostringstream errout;
 
         Tokenizer tokenizer;
-        tokenizer.tokenize("standard_header.c", false, includePaths, false, errout);
+        tokenizer.tokenize("standard_header.c", includePaths, false, errout);
 
         // Including header which is not needed
         WarningIncludeHeader(tokenizer, false, errout);
@@ -223,7 +223,7 @@ private:
         std::ostringstream errout;
 
         Tokenizer tokenizer;
-        tokenizer.tokenize("test1.c", false, includePaths, false, errout);
+        tokenizer.tokenize("test1.c", includePaths, false, errout);
 
         // Including header which is not needed
         WarningIncludeHeader(tokenizer, false, errout);
