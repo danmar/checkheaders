@@ -225,10 +225,10 @@ void Tokenizer::tokenizeCode(std::istream &code, const unsigned int FileIndex, c
 
                     // Add path for current file to the include paths..
                     std::vector<std::string> incpaths;
-                    if (Files.back().find_first_of("\\/") != std::string::npos)
+                    if (Files[FileIndex].find_first_of("\\/") != std::string::npos)
                     {
-                        std::string path = Files.back();
-                        path.erase( 1 + path.find_last_of("\\/") );
+                        std::string path = Files[FileIndex];
+                        path.erase(1 + path.find_last_of("\\/"));
                         incpaths.push_back(path);
                     }
                     std::copy(includePaths.begin(), includePaths.end(), std::back_inserter(incpaths));
