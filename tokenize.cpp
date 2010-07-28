@@ -136,6 +136,13 @@ bool Tokenizer::tokenize(const char FileName[], const std::vector<std::string> &
     if (SameFileName(FileName, "stdafx.h"))
         return true;
 
+    // Has this file been tokenized already?
+    for (unsigned int i = 0; i < ShortFileNames.size(); i++)
+    {
+        if (SameFileName(ShortFileNames[i].c_str(), FileName))
+            return true;
+    }
+
     std::string filename(FileName);
 
     // Open file..
@@ -167,18 +174,12 @@ bool Tokenizer::tokenize(const char FileName[], const std::vector<std::string> &
             return false;
     }
 
-    // Has this file been tokenized already?
-    for (unsigned int i = 0; i < Files.size(); i++)
-    {
-        if (SameFileName(Files[i].c_str(), filename.c_str()))
-            return true;
-    }
-
     // The "Files" vector remembers what files have been tokenized..
-    Files.push_back(filename);
+    ShortFileNames.push_back(FileName);
+    FullFileNames.push_back(filename);
 
     // Tokenize the file..
-    tokenizeCode( fin, Files.size() - 1, includePaths, XmlOutput, errout );
+    tokenizeCode( fin, FullFileNames.size() - 1, includePaths, XmlOutput, errout );
 
     return true;
 }
@@ -228,9 +229,9 @@ void Tokenizer::tokenizeCode(std::istream &code, const unsigned int FileIndex, c
 
                     // Add path for current file to the include paths..
                     std::vector<std::string> incpaths;
-                    if (Files[FileIndex].find_first_of("\\/") != std::string::npos)
+                    if (FullFileNames[FileIndex].find_first_of("\\/") != std::string::npos)
                     {
-                        std::string path = Files[FileIndex];
+                        std::string path = FullFileNames[FileIndex];
                         path.erase(1 + path.find_last_of("\\/"));
                         incpaths.push_back(path);
                     }
@@ -246,7 +247,7 @@ void Tokenizer::tokenizeCode(std::istream &code, const unsigned int FileIndex, c
                     
                         if (XmlOutput)
                         {
-                            errout << "<file=\"" << Files[FileIndex] << "\""
+                            errout << "<file=\"" << FullFileNames[FileIndex] << "\""
                                    << " line=\"" << lineno << "\""
                                    << " severity=\"style\""
                                    << " id=\"HeaderNotFound\""
@@ -255,7 +256,7 @@ void Tokenizer::tokenizeCode(std::istream &code, const unsigned int FileIndex, c
                         }
                         else
                         {
-                            errout << "[" << Files[FileIndex] << ":" << lineno << "] (style) " << errmsg << std::endl;
+                            errout << "[" << FullFileNames[FileIndex] << ":" << lineno << "] (style) " << errmsg << std::endl;
                         }
                     }
                 }

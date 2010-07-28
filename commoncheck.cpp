@@ -58,7 +58,7 @@ void ReportErr(const Tokenizer &tokenizer, bool XmlOutput, const Token *tok, con
     std::ostringstream ostr;
     if (XmlOutput)
     {
-        ostr << "<error file=\"" << tokenizer.Files[tok->FileIndex] << "\""
+        ostr << "<error file=\"" << tokenizer.FullFileNames[tok->FileIndex] << "\""
              << " line=\"" << tok->linenr << "\""
              << " severity=\"style\""
              << " id=\"" << id << "\""
@@ -66,7 +66,7 @@ void ReportErr(const Tokenizer &tokenizer, bool XmlOutput, const Token *tok, con
     }
     else
     {
-        ostr << "[" << tokenizer.Files[tok->FileIndex] << ":" << tok->linenr << "]" << " (style): " << errmsg;
+        ostr << "[" << tokenizer.FullFileNames[tok->FileIndex] << ":" << tok->linenr << "]" << " (style): " << errmsg;
     }
 
     // Avoid duplicate error messages..

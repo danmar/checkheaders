@@ -55,7 +55,8 @@ public:
     bool tokenize(const char FileName[], const std::vector<std::string> &includePaths, const bool XmlOutput, std::ostream &errout);
 
     struct Token * tokens;
-    std::vector<std::string> Files;
+    std::vector<std::string> FullFileNames;
+    std::vector<std::string> ShortFileNames;
 };
 
 

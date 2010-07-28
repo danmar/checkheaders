@@ -74,13 +74,13 @@ void WarningIncludeHeader(const Tokenizer &tokenizer, bool XmlOutput, std::ostre
         // Get fileindex of included file..
         unsigned int hfile = 0;
         const char *includefile = includetok->next->str;
-        while (hfile < tokenizer.Files.size())
+        while (hfile < tokenizer.ShortFileNames.size())
         {
-            if ( SameFileName( tokenizer.Files[hfile].c_str(), includefile ) )
+            if ( SameFileName( tokenizer.ShortFileNames[hfile].c_str(), includefile ) )
                 break;
             hfile++;
         }
-        if (hfile == tokenizer.Files.size())
+        if (hfile == tokenizer.ShortFileNames.size())
             continue;
 
         // This header is needed if:
