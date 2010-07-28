@@ -38,6 +38,7 @@ private:
         TEST_CASE(implementation2);
         TEST_CASE(issue3);
         TEST_CASE(needed_define);
+        TEST_CASE(needed_typedef);
         TEST_CASE(stdafx);
         TEST_CASE(test1);
     }
@@ -131,6 +132,28 @@ private:
 
         Tokenizer tokenizer;
         tokenizer.tokenize("needed_define.c", includePaths);
+
+        // Including header which is not needed
+        std::ostringstream errout;
+        WarningIncludeHeader(tokenizer, false, errout);
+
+        ASSERT_EQUALS("", errout.str());
+    }
+
+    void needed_typedef()
+    {
+        {
+            std::ofstream f1("needed_typedef.c");
+            f1 << "#include \"needed_typedef.h\"\n"
+               << "U32 foo()\n"
+               << "{ return 0; }";
+
+            std::ofstream f2("needed_typedef.h");
+            f2 << "typedef unsigned int U32;\n";
+        }
+
+        Tokenizer tokenizer;
+        tokenizer.tokenize("needed_typedef.c", includePaths);
 
         // Including header which is not needed
         std::ostringstream errout;
