@@ -28,7 +28,6 @@
 #include <string>
 #include <cstring>
 #include <cctype>
-#include <iostream>
 
 #include <string.h>
 #include <stdlib.h>
@@ -132,17 +131,17 @@ Tokenizer::~Tokenizer()
     }
 }
 
-void Tokenizer::tokenize(const char FileName[], const std::vector<std::string> &includePaths)
+bool Tokenizer::tokenize(const char FileName[], const std::vector<std::string> &includePaths, const bool XmlOutput, std::ostream &errout)
 {
     // Skip stdafx.h..
     if (SameFileName(FileName, "stdafx.h"))
-        return;
+        return true;
     
     // Has this file been tokenized already?
     for (unsigned int i = 0; i < Files.size(); i++)
     {
         if ( SameFileName( Files[i].c_str(), FileName ) )
-            return;
+            return true;
     }
 
     std::string filename(FileName);
@@ -173,17 +172,16 @@ void Tokenizer::tokenize(const char FileName[], const std::vector<std::string> &
         }
 
         if (!fin.is_open())
-        {
-            std::cout << "header not found: " << FileName << std::endl;
-            return;
-        }
+            return false;
     }
 
     // The "Files" vector remembers what files have been tokenized..
     Files.push_back(filename);
 
     // Tokenize the file..
-    tokenizeCode( fin, Files.size() - 1, includePaths );
+    tokenizeCode( fin, Files.size() - 1, includePaths, XmlOutput, errout );
+
+    return true;
 }
 //---------------------------------------------------------------------------
 
@@ -195,7 +193,7 @@ void Tokenizer::tokenize(const char FileName[], const std::vector<std::string> &
 // Tokenize - tokenizes input stream
 //---------------------------------------------------------------------------
 
-void Tokenizer::tokenizeCode(std::istream &code, const unsigned int FileIndex, const std::vector<std::string> &includePaths)
+void Tokenizer::tokenizeCode(std::istream &code, const unsigned int FileIndex, const std::vector<std::string> &includePaths, const bool XmlOutput, std::ostream &errout)
 {
     // Tokenize the file.
     unsigned int lineno = 1;
@@ -240,7 +238,25 @@ void Tokenizer::tokenizeCode(std::istream &code, const unsigned int FileIndex, c
                     addtoken("#include", lineno, FileIndex);
                     addtoken(line.c_str(), lineno, FileIndex);
 
-                    tokenize(line.c_str(), incpaths);
+                    bool found = tokenize(line.c_str(), incpaths, XmlOutput, errout);
+                    if (!found)
+                    {
+                        const std::string errmsg("Header not found: " + line);
+                    
+                        if (XmlOutput)
+                        {
+                            errout << "<file=\"" << Files[FileIndex] << "\""
+                                   << " line=\"" << lineno << "\""
+                                   << " severity=\"style\""
+                                   << " id=\"HeaderNotFound\""
+                                   << " message=\"" << errmsg << "\""
+                                   << "/>" << std::endl;
+                        }
+                        else
+                        {
+                            errout << "[" << Files[FileIndex] << ":" << lineno << "] (style) " << errmsg << std::endl;
+                        }
+                    }
                 }
                 ++lineno;
             }
