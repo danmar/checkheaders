@@ -24,10 +24,11 @@
 #include <locale>
 #include <fstream>
 
-#include <map>
+//#include <map>
 #include <string>
 #include <cstring>
 #include <cctype>
+#include <iostream>
 
 #include <string.h>
 #include <stdlib.h>
@@ -114,11 +115,10 @@ static void combine_2tokens(Token *tok, const char str1[], const char str2[])
 // Tokenizer
 //---------------------------------------------------------------------------
 
-Tokenizer::Tokenizer(const char FileName[])
+Tokenizer::Tokenizer()
 {
     tokens = NULL;
     tokens_back = NULL;
-    tokenize(FileName);
 }
 
 Tokenizer::~Tokenizer()
@@ -132,8 +132,8 @@ Tokenizer::~Tokenizer()
     }
 }
 
-void Tokenizer::tokenize(const char FileName[])
-{    
+void Tokenizer::tokenize(const char FileName[], const std::vector<std::string> &includePaths)
+{
     // Has this file been tokenized already?
     for (unsigned int i = 0; i < Files.size(); i++)
     {
@@ -141,16 +141,45 @@ void Tokenizer::tokenize(const char FileName[])
             return;
     }
 
+    std::string filename(FileName);
+
     // Open file..
     std::ifstream fin(FileName);
     if (!fin.is_open())
-        return;
+    {
+        for (unsigned int i = 0; i < includePaths.size(); ++i)
+        {
+            filename = includePaths[i];
+
+            // Append '/' if the last char is neither '/' nor '\'
+            char lastChar = '/';
+            if (!filename.empty())
+                lastChar = filename[filename.size() - 1];
+            if (lastChar != '\\' && lastChar != '/')
+                filename += '/';
+
+            // Append FileName
+            filename += FileName;
+
+            // Try to open file
+            fin.clear();
+            fin.open(filename.c_str());
+            if (fin.is_open())
+                break;
+        }
+
+        if (!fin.is_open())
+        {
+            std::cout << "header not found: " << FileName << std::endl;
+            return;
+        }
+    }
 
     // The "Files" vector remembers what files have been tokenized..
-    Files.push_back(FileName);
+    Files.push_back(filename);
 
     // Tokenize the file..
-    tokenizeCode( fin, Files.size() - 1 );
+    tokenizeCode( fin, Files.size() - 1, includePaths );
 }
 //---------------------------------------------------------------------------
 
@@ -162,7 +191,7 @@ void Tokenizer::tokenize(const char FileName[])
 // Tokenize - tokenizes input stream
 //---------------------------------------------------------------------------
 
-void Tokenizer::tokenizeCode(std::istream &code, const unsigned int FileIndex)
+void Tokenizer::tokenizeCode(std::istream &code, const unsigned int FileIndex, const std::vector<std::string> &includePaths)
 {
     // Tokenize the file.
     unsigned int lineno = 1;
@@ -194,18 +223,20 @@ void Tokenizer::tokenizeCode(std::istream &code, const unsigned int FileIndex)
                     line.erase(0, line.find("\"")+1);
                     line.erase(line.find("\""));
 
-                    // Relative path..
+                    // Add path for current file to the include paths..
+                    std::vector<std::string> incpaths;
                     if (Files.back().find_first_of("\\/") != std::string::npos)
                     {
                         std::string path = Files.back();
                         path.erase( 1 + path.find_last_of("\\/") );
-                        line = path + line;
+                        incpaths.push_back(path);
                     }
+                    std::copy(includePaths.begin(), includePaths.end(), std::back_inserter(incpaths));
 
                     addtoken("#include", lineno, FileIndex);
                     addtoken(line.c_str(), lineno, FileIndex);
 
-                    tokenize(line.c_str());
+                    tokenize(line.c_str(), incpaths);
                 }
                 ++lineno;
             }

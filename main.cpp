@@ -40,7 +40,7 @@
 static bool Debug;      /// --debug
 static bool XmlOutput;  /// --xml
 
-static void CppCheck(const char FileName[], unsigned int FileId);
+static void CppCheck(const char FileName[], const std::vector<std::string> &includePaths);
 
 //---------------------------------------------------------------------------
 // Main function of checkheaders
@@ -49,6 +49,7 @@ static void CppCheck(const char FileName[], unsigned int FileId);
 int main(int argc, char* argv[])
 {
     std::vector<std::string> filenames;
+    std::vector<std::string> includePaths;
 
     for (int i = 1; i < argc; i++)
     {
@@ -62,6 +63,12 @@ int main(int argc, char* argv[])
             XmlOutput = true;
         }
 
+        else if (strcmp(argv[i], "-I") == 0 && (i + 1) < argc)
+        {
+            ++i;
+            includePaths.push_back(argv[i]);
+        }
+
         else
         {
             FileLister::recursiveAddFiles(filenames, argv[i], true);            
@@ -70,10 +77,22 @@ int main(int argc, char* argv[])
 
     if (filenames.empty())
     {
-        std::cout << "check headers in C/C++ code\n"
-                     "\n"
-                     "Syntax:\n"
-                     "    checkheaders [--xml] [filename1] [filename2]\n";
+        std::cout << "check headers in C/C++ code to detect unnecessary includes.\n"
+                  << "\n"
+                  << "Syntax:\n"
+                  << "    checkheaders [-I <path>] [--xml] <path or file>\n"
+                  << "\n"
+                  << "Options:\n"
+                  << "    --xml      Output report in xml format\n"
+                  << "    -I <path>  Specify include path\n"
+                  << "\n"
+                  << "Example usage:\n"
+                  << "    # check all files recursively under myproject\n"
+                  << "    checkheaders myproject/\n"
+                  << "    # Search for headers in the \"inc1\" folder\n"
+                  << "    checkheaders -I inc1 myproject/\n"
+                  << "    # Save error messages in a file\n"
+                  << "    checkheaders myproject/ 2> report.txt\n";
         return 0;
     }
 
@@ -87,7 +106,7 @@ int main(int argc, char* argv[])
 
     for (unsigned int c = 0; c < filenames.size(); c++)
     {
-        CppCheck(filenames[c].c_str(), c);
+        CppCheck(filenames[c].c_str(), includePaths);
     }
 
     if (XmlOutput)
@@ -100,12 +119,13 @@ int main(int argc, char* argv[])
 // CppCheck - A function that checks a specified file
 //---------------------------------------------------------------------------
 
-static void CppCheck(const char FileName[], unsigned int FileId)
+static void CppCheck(const char FileName[], const std::vector<std::string> &includePaths)
 {
     std::cout << "Checking " << FileName << "...\n";
 
     // Tokenize the file
-    const Tokenizer tokenizer(FileName);
+    Tokenizer tokenizer;
+    tokenizer.tokenize(FileName, includePaths);
 
     // debug output..
     if (Debug)
