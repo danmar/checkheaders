@@ -134,6 +134,10 @@ Tokenizer::~Tokenizer()
 
 void Tokenizer::tokenize(const char FileName[], const std::vector<std::string> &includePaths)
 {
+    // Skip stdafx.h..
+    if (SameFileName(FileName, "stdafx.h"))
+        return;
+    
     // Has this file been tokenized already?
     for (unsigned int i = 0; i < Files.size(); i++)
     {
