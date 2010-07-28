@@ -1,10 +1,11 @@
 SRCS=checkheaders.cpp	commoncheck.cpp	filelister.cpp	tokenize.cpp
 OBJS=$(SRCS:%.cpp=%.o)
+HDRS=$(SRCS:%.cpp=%.h)
 CXX=g++
 APPNAME=checkheaders
 
-%.o:	%.cpp
-	$(CXX) -Wall -pedantic -g -I. -o $@ -c $^
+%.o:	%.cpp	$(HDRS)
+	$(CXX) -Wall -pedantic -g -I. -o $@ -c $<
 
 all:	${OBJS}	main.o
 	$(CXX) -Wall -g -o ${APPNAME} $^
