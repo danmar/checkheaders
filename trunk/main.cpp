@@ -125,7 +125,7 @@ static void CppCheck(const char FileName[], const std::vector<std::string> &incl
 
     // Tokenize the file
     Tokenizer tokenizer;
-    tokenizer.tokenize(FileName, false, includePaths, XmlOutput, std::cerr);
+    tokenizer.tokenize(FileName, includePaths, XmlOutput, std::cerr);
 
     // debug output..
     if (Debug)

@@ -130,7 +130,7 @@ Tokenizer::~Tokenizer()
     }
 }
 
-bool Tokenizer::tokenize(const char FileName[], const bool SystemHeader, const std::vector<std::string> &includePaths, const bool XmlOutput, std::ostream &errout)
+bool Tokenizer::tokenize(const char FileName[], const std::vector<std::string> &includePaths, const bool XmlOutput, std::ostream &errout)
 {
     // Skip stdafx.h..
     if (SameFileName(FileName, "stdafx.h"))
@@ -179,7 +179,7 @@ bool Tokenizer::tokenize(const char FileName[], const bool SystemHeader, const s
     FullFileNames.push_back(filename);
 
     // Tokenize the file..
-    tokenizeCode(fin, SystemHeader, FullFileNames.size() - 1, includePaths, XmlOutput, errout);
+    tokenizeCode(fin, FullFileNames.size() - 1, includePaths, XmlOutput, errout);
 
     return true;
 }
@@ -193,7 +193,7 @@ bool Tokenizer::tokenize(const char FileName[], const bool SystemHeader, const s
 // Tokenize - tokenizes input stream
 //---------------------------------------------------------------------------
 
-void Tokenizer::tokenizeCode(std::istream &code, const bool SystemHeader, const unsigned int FileIndex, const std::vector<std::string> &includePaths, const bool XmlOutput, std::ostream &errout)
+void Tokenizer::tokenizeCode(std::istream &code, const unsigned int FileIndex, const std::vector<std::string> &includePaths, const bool XmlOutput, std::ostream &errout)
 {
     // Tokenize the file.
     unsigned int lineno = 1;
@@ -219,10 +219,11 @@ void Tokenizer::tokenizeCode(std::istream &code, const bool SystemHeader, const 
             if (line.compare(0, 8, "#include")==0)
             {
                 getline(code, line);
-                if (!SystemHeader && line.find_first_of("<\"") != std::string::npos)
+
+                if (line.find_first_of("<\"") != std::string::npos)
                 {
-                    const bool syshdr(line.find("<") != std::string::npos);
-                
+                    const bool SystemHeader(line.find("<") != std::string::npos);
+
                     // Extract the filename
                     line.erase(0, line.find_first_of("<\"")+1);
                     line.erase(line.find_first_of(">\""));
@@ -237,12 +238,15 @@ void Tokenizer::tokenizeCode(std::istream &code, const bool SystemHeader, const 
                     }
                     std::copy(includePaths.begin(), includePaths.end(), std::back_inserter(incpaths));
 
-                    addtoken("#include", lineno, FileIndex);
+                    addtoken(SystemHeader ? "#include<>" : "#include", lineno, FileIndex);
                     addtoken(line.c_str(), lineno, FileIndex);
 
-                    const bool found(tokenize(line.c_str(), syshdr, incpaths, XmlOutput, errout));
+                    const bool found(tokenize(line.c_str(), incpaths, XmlOutput, errout));
                     if (!found)
                     {
+                        free(tokens_back->str);
+                        tokens_back->str = strdup("not found");
+                    
                         const std::string errmsg("Header not found: " + line);
                     
                         if (XmlOutput)
