@@ -24,7 +24,6 @@
 #include <locale>
 #include <fstream>
 
-//#include <map>
 #include <string>
 #include <cstring>
 #include <cctype>
@@ -136,13 +135,6 @@ bool Tokenizer::tokenize(const char FileName[], const std::vector<std::string> &
     // Skip stdafx.h..
     if (SameFileName(FileName, "stdafx.h"))
         return true;
-    
-    // Has this file been tokenized already?
-    for (unsigned int i = 0; i < Files.size(); i++)
-    {
-        if ( SameFileName( Files[i].c_str(), FileName ) )
-            return true;
-    }
 
     std::string filename(FileName);
 
@@ -173,6 +165,13 @@ bool Tokenizer::tokenize(const char FileName[], const std::vector<std::string> &
 
         if (!fin.is_open())
             return false;
+    }
+
+    // Has this file been tokenized already?
+    for (unsigned int i = 0; i < Files.size(); i++)
+    {
+        if (SameFileName(Files[i].c_str(), filename.c_str()))
+            return true;
     }
 
     // The "Files" vector remembers what files have been tokenized..
@@ -219,11 +218,13 @@ void Tokenizer::tokenizeCode(std::istream &code, const unsigned int FileIndex, c
             if (line.compare(0, 8, "#include")==0)
             {
                 getline(code, line);
-                if (line.find("\"") != std::string::npos)
+                if (line.find_first_of("<\"") != std::string::npos)
                 {
+                    //const bool SystemInclude(line.find("<") != std::string::npos);
+                
                     // Extract the filename
-                    line.erase(0, line.find("\"")+1);
-                    line.erase(line.find("\""));
+                    line.erase(0, line.find_first_of("<\"")+1);
+                    line.erase(line.find_first_of(">\""));
 
                     // Add path for current file to the include paths..
                     std::vector<std::string> incpaths;
