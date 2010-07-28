@@ -38,6 +38,7 @@ private:
         TEST_CASE(implementation2);
         TEST_CASE(issue3);
         TEST_CASE(needed_define);
+        TEST_CASE(stdafx);
         TEST_CASE(test1);
     }
 
@@ -138,6 +139,26 @@ private:
         ASSERT_EQUALS("", errout.str());
     }
 
+    void stdafx()
+    {
+        {
+            std::ofstream f1("stdafx.c");
+            f1 << "#include \"stdafx.h\"\n";    // stdafx.h is always needed
+
+            std::ofstream f2("stdafx.h");
+            f2 << "#include <stdio.h>\n";       // stdafx.h needs all included headers
+        }
+
+        Tokenizer tokenizer;
+        tokenizer.tokenize("stdafx.c", includePaths);
+
+        // Including header which is not needed
+        std::ostringstream errout;
+        WarningIncludeHeader(tokenizer, false, errout);
+
+        ASSERT_EQUALS("", errout.str());
+    }
+    
     void test1()
     {
         {
