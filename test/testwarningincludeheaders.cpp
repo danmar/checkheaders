@@ -40,6 +40,7 @@ private:
         TEST_CASE(needed_define);
         TEST_CASE(needed_typedef);
         TEST_CASE(stdafx);
+        TEST_CASE(standard_header);
         TEST_CASE(test1);
     }
 
@@ -186,6 +187,27 @@ private:
         WarningIncludeHeader(tokenizer, false, errout);
 
         ASSERT_EQUALS("", errout.str());
+    }
+    
+    void standard_header()
+    {
+        {
+            std::ofstream f1("standard_header.c");
+            f1 << "#include <standard_header.h>\n";
+
+            std::ofstream f2("standard_header.h");
+            f2 << "void foo();\n";
+        }
+
+        std::ostringstream errout;
+
+        Tokenizer tokenizer;
+        tokenizer.tokenize("standard_header.c", includePaths, false, errout);
+
+        // Including header which is not needed
+        WarningIncludeHeader(tokenizer, false, errout);
+
+        ASSERT_EQUALS("[standard_header.c:1] (style): The included header 'standard_header.h' is not needed\n", errout.str());
     }
     
     void test1()
