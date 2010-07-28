@@ -37,14 +37,15 @@ class Tokenizer
 private:
     struct Token * tokens_back;
 
-    void tokenize(const char FileName[]);
-    void tokenizeCode(std::istream &code, const unsigned int FileIndex=0);
+    void tokenizeCode(std::istream &code, const unsigned int FileIndex, const std::vector<std::string> &includePaths);
 
     void addtoken(const char str[], const unsigned int lineno, const unsigned int fileno);
 
 public:
-    Tokenizer(const char FileName[]);
+    Tokenizer();
     ~Tokenizer();
+
+    void tokenize(const char FileName[], const std::vector<std::string> &includePaths);
 
     struct Token * tokens;
     std::vector<std::string> Files;

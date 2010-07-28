@@ -21,6 +21,7 @@
 #include "testsuite.h"
 #include <fstream>
 #include <sstream>
+#include <vector>
 
 class TestWarningIncludeHeaders : public TestFixture
 {
@@ -29,6 +30,8 @@ public:
     { }
 
 private:
+    const std::vector<std::string> includePaths;
+
     void run()
     {
         TEST_CASE(implementation1);
@@ -55,7 +58,8 @@ private:
                << "}\n";
         }
         
-        const Tokenizer tokenizer("implementation1.c");
+        Tokenizer tokenizer;
+        tokenizer.tokenize("implementation1.c", includePaths);
 
         // Including header which is not needed
         std::ostringstream errout;
@@ -80,7 +84,8 @@ private:
                << "}\n";
         }
         
-        const Tokenizer tokenizer("implementation2.c");
+        Tokenizer tokenizer;
+        tokenizer.tokenize("implementation2.c", includePaths);
 
         // Including header which is not needed
         std::ostringstream errout;
@@ -102,7 +107,8 @@ private:
             f2 << "struct PROXY_INFO { bool use_http_proxy; };\n";
         }
 
-        const Tokenizer tokenizer("issue3.c");
+        Tokenizer tokenizer;
+        tokenizer.tokenize("issue3.c", includePaths);
 
         // Including header which is not needed
         std::ostringstream errout;
@@ -122,7 +128,8 @@ private:
             f2 << "#define __attribute__(x)\n";
         }
 
-        const Tokenizer tokenizer("needed_define.c");
+        Tokenizer tokenizer;
+        tokenizer.tokenize("needed_define.c", includePaths);
 
         // Including header which is not needed
         std::ostringstream errout;
@@ -141,7 +148,8 @@ private:
             f2 << "class Fred { };\n";
         }
 
-        const Tokenizer tokenizer("test1.c");
+        Tokenizer tokenizer;
+        tokenizer.tokenize("test1.c", includePaths);
 
         // Including header which is not needed
         std::ostringstream errout;
