@@ -24,10 +24,8 @@
 
 #include "tokenize.h"
 
-#include <list>
 #include <string>
 #include <sstream>
-#include <vector>
 
 struct Token;
 
