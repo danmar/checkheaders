@@ -28,6 +28,9 @@
 //---------------------------------------------------------------------------
 
 
+// Enable debugging messages in this file
+static const bool Debug(false);
+#include <iostream>
 
 
 //---------------------------------------------------------------------------
@@ -231,10 +234,26 @@ void WarningIncludeHeader(const Tokenizer &tokenizer, bool XmlOutput, std::ostre
         // Get symbol names in header..
         std::set<std::string> classlist;
         std::set<std::string> namelist;
-        GetSymbolNames(tokenizer, includetok, bool(strcmp(includetok->str, "#include<>") == 0), classlist, namelist);
+        GetSymbolNames(tokenizer, includetok, Match(includetok, "#include<>"), classlist, namelist);
 
         if (classlist.empty() && namelist.empty())
             continue;
+
+        // remove keywords..
+        const char *keywords[] = { "void", "bool", "char", "short", "int", "long", "float", "long",
+                                   "unsigned", "signed",
+                                   "if", "switch", "while", "for",
+                                   "return",
+                                   "catch",
+                                   "defined",    // preprocessor command
+                                   "std",        // namespace to ignore
+                                   NULL };
+        for (unsigned int i = 0; NULL != keywords[i]; ++i)
+        {
+            const std::string name(keywords[i]);
+            classlist.erase(name);
+            namelist.erase(name);
+        }
 
         // Check if the extracted names are used...
         bool Needed = false;
@@ -244,6 +263,12 @@ void WarningIncludeHeader(const Tokenizer &tokenizer, bool XmlOutput, std::ostre
         {
             if (tok1->FileIndex != includetok->FileIndex)
                 continue;
+
+            if (strncmp(tok1->str, "#include", 8) == 0)
+            {
+                tok1 = tok1->next;
+                continue;
+            }
 
             // implementation begins..
             if (indentlevel == 0 && (Match(tok1, ") {") || Match(tok1, ") const {")))
@@ -266,6 +291,8 @@ void WarningIncludeHeader(const Tokenizer &tokenizer, bool XmlOutput, std::ostre
                 const std::string classname(getstr(tok1, (strcmp(getstr(tok1,2),"{")) ? 2 : 1));
                 if (classlist.find(classname) != classlist.end())
                 {
+                    if (Debug)
+                        std::cout << "needed:" << classname << std::endl;
                     Needed = true;
                     break;
                 }
@@ -287,6 +314,8 @@ void WarningIncludeHeader(const Tokenizer &tokenizer, bool XmlOutput, std::ostre
             if (namelist.find(tok1->str) != namelist.end() ||
                 classlist.find(tok1->str) != classlist.end())
             {
+                if (Debug)
+                    std::cout << "needed:" << tok1->str << std::endl;
                 Needed = true;
                 break;
             }
