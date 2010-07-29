@@ -67,7 +67,7 @@ private:
         tokenizer.tokenize("implementation1.c", includePaths, false, errout);
 
         // Including header which is not needed
-        WarningIncludeHeader(tokenizer, false, errout);
+        WarningIncludeHeader(tokenizer, false, false, errout);
 
         ASSERT_EQUALS("", errout.str());
     }
@@ -94,7 +94,7 @@ private:
         tokenizer.tokenize("implementation2.c", includePaths, false, errout);
 
         // Including header which is not needed
-        WarningIncludeHeader(tokenizer, false, errout);
+        WarningIncludeHeader(tokenizer, false, false, errout);
 
         ASSERT_EQUALS("[implementation2.c:1] (style): The included header 'implementation2.h' is not needed\n", errout.str());
     }
@@ -118,7 +118,7 @@ private:
         tokenizer.tokenize("issue3.c", includePaths, false, errout);
 
         // Including header which is not needed
-        WarningIncludeHeader(tokenizer, false, errout);
+        WarningIncludeHeader(tokenizer, false, false, errout);
 
         ASSERT_EQUALS("", errout.str());
     }
@@ -140,7 +140,7 @@ private:
         tokenizer.tokenize("needed_define.c", includePaths, false, errout);
 
         // Including header which is not needed
-        WarningIncludeHeader(tokenizer, false, errout);
+        WarningIncludeHeader(tokenizer, false, false, errout);
 
         ASSERT_EQUALS("", errout.str());
     }
@@ -163,7 +163,7 @@ private:
         tokenizer.tokenize("needed_typedef.c", includePaths, false, errout);
 
         // Including header which is not needed
-        WarningIncludeHeader(tokenizer, false, errout);
+        WarningIncludeHeader(tokenizer, false, false, errout);
 
         ASSERT_EQUALS("", errout.str());
     }
@@ -184,7 +184,7 @@ private:
         tokenizer.tokenize("stdafx.c", includePaths, false, errout);
 
         // Including header which is not needed
-        WarningIncludeHeader(tokenizer, false, errout);
+        WarningIncludeHeader(tokenizer, false, false, errout);
 
         ASSERT_EQUALS("", errout.str());
     }
@@ -205,7 +205,7 @@ private:
         tokenizer.tokenize("standard_header.c", includePaths, false, errout);
 
         // Including header which is not needed
-        WarningIncludeHeader(tokenizer, false, errout);
+        WarningIncludeHeader(tokenizer, false, false, errout);
 
         ASSERT_EQUALS("[standard_header.c:1] (style): The included header 'standard_header.h' is not needed\n", errout.str());
     }
@@ -226,7 +226,7 @@ private:
         tokenizer.tokenize("test1.c", includePaths, false, errout);
 
         // Including header which is not needed
-        WarningIncludeHeader(tokenizer, false, errout);
+        WarningIncludeHeader(tokenizer, false, false, errout);
 
         ASSERT_EQUALS("[test1.c:1] (style): The included header 'test1.h' is not needed\n", errout.str());
     }

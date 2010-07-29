@@ -193,7 +193,7 @@ static bool GetSymbolNames(const Tokenizer &tokenizer, const Token *includetok, 
     return true;
 }
 
-void WarningIncludeHeader(const Tokenizer &tokenizer, bool XmlOutput, std::ostream &errout)
+void WarningIncludeHeader(const Tokenizer &tokenizer, bool Progress, bool XmlOutput, std::ostream &errout)
 {
     // A header is needed if:
     // * It contains some needed class declaration
@@ -230,6 +230,12 @@ void WarningIncludeHeader(const Tokenizer &tokenizer, bool XmlOutput, std::ostre
         // Is the current file a system header? If so don't check it.
         if (SystemHeaders.find(includetok->FileIndex) != SystemHeaders.end())
             continue;
+
+        if (strcmp(includetok->next->str, "not found") == 0)
+            continue;
+
+        if (Progress)
+            std::cout << "progress: file=" << tokenizer.ShortFileNames[includetok->FileIndex] << " checking include " << includetok->next->str << std::endl;
 
         // Get symbol names in header..
         std::set<std::string> classlist;
