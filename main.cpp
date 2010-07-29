@@ -138,7 +138,7 @@ static void CppCheck(const char FileName[], const std::vector<std::string> &incl
     }
 
     // Including header which is not needed
-    WarningIncludeHeader(tokenizer, XmlOutput, std::cerr);
+    WarningIncludeHeader(tokenizer, true, XmlOutput, std::cerr);
 }
 //---------------------------------------------------------------------------
 
