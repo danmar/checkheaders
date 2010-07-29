@@ -130,7 +130,7 @@ Tokenizer::~Tokenizer()
     }
 }
 
-bool Tokenizer::tokenize(const char FileName[], const std::vector<std::string> &includePaths, const bool XmlOutput, std::ostream &errout)
+bool Tokenizer::tokenize(const char FileName[], const std::vector<std::string> &includePaths, const std::set<std::string> &skipIncludes, const bool XmlOutput, std::ostream &errout)
 {
     // Skip stdafx.h..
     if (SameFileName(FileName, "stdafx.h"))
@@ -179,7 +179,7 @@ bool Tokenizer::tokenize(const char FileName[], const std::vector<std::string> &
     FullFileNames.push_back(filename);
 
     // Tokenize the file..
-    tokenizeCode(fin, FullFileNames.size() - 1, includePaths, XmlOutput, errout);
+    tokenizeCode(fin, FullFileNames.size() - 1, includePaths, skipIncludes, XmlOutput, errout);
 
     return true;
 }
@@ -193,7 +193,7 @@ bool Tokenizer::tokenize(const char FileName[], const std::vector<std::string> &
 // Tokenize - tokenizes input stream
 //---------------------------------------------------------------------------
 
-void Tokenizer::tokenizeCode(std::istream &code, const unsigned int FileIndex, const std::vector<std::string> &includePaths, const bool XmlOutput, std::ostream &errout)
+void Tokenizer::tokenizeCode(std::istream &code, const unsigned int FileIndex, const std::vector<std::string> &includePaths, const std::set<std::string> &skipIncludes, const bool XmlOutput, std::ostream &errout)
 {
     // Tokenize the file.
     unsigned int lineno = 1;
@@ -228,39 +228,42 @@ void Tokenizer::tokenizeCode(std::istream &code, const unsigned int FileIndex, c
                     line.erase(0, line.find_first_of("<\"")+1);
                     line.erase(line.find_first_of(">\""));
 
-                    // Add path for current file to the include paths..
-                    std::vector<std::string> incpaths;
-                    if (FullFileNames[FileIndex].find_first_of("\\/") != std::string::npos)
+                    if (skipIncludes.find(line) == skipIncludes.end())
                     {
-                        std::string path = FullFileNames[FileIndex];
-                        path.erase(1 + path.find_last_of("\\/"));
-                        incpaths.push_back(path);
-                    }
-                    std::copy(includePaths.begin(), includePaths.end(), std::back_inserter(incpaths));
-
-                    addtoken(SystemHeader ? "#include<>" : "#include", lineno, FileIndex);
-                    addtoken(line.c_str(), lineno, FileIndex);
-
-                    const bool found(tokenize(line.c_str(), incpaths, XmlOutput, errout));
-                    if (!found)
-                    {
-                        free(tokens_back->str);
-                        tokens_back->str = strdup("not found");
-                    
-                        const std::string errmsg("Header not found '" + line + "'. Use -I to fix this message.");
-
-                        if (XmlOutput)
+                        // Add path for current file to the include paths..
+                        std::vector<std::string> incpaths;
+                        if (FullFileNames[FileIndex].find_first_of("\\/") != std::string::npos)
                         {
-                            errout << "<file=\"" << FullFileNames[FileIndex] << "\""
-                                   << " line=\"" << lineno << "\""
-                                   << " severity=\"style\""
-                                   << " id=\"HeaderNotFound\""
-                                   << " message=\"" << errmsg << "\""
-                                   << "/>" << std::endl;
+                            std::string path = FullFileNames[FileIndex];
+                            path.erase(1 + path.find_last_of("\\/"));
+                            incpaths.push_back(path);
                         }
-                        else
+                        std::copy(includePaths.begin(), includePaths.end(), std::back_inserter(incpaths));
+
+                        addtoken(SystemHeader ? "#include<>" : "#include", lineno, FileIndex);
+                        addtoken(line.c_str(), lineno, FileIndex);
+
+                        const bool found(tokenize(line.c_str(), incpaths, skipIncludes, XmlOutput, errout));
+                        if (!found)
                         {
-                            errout << "[" << FullFileNames[FileIndex] << ":" << lineno << "] (style) " << errmsg << std::endl;
+                            free(tokens_back->str);
+                            tokens_back->str = strdup("not found");
+                    
+                            const std::string errmsg("Header not found '" + line + "'. Use -I or --skip to fix this message.");
+
+                            if (XmlOutput)
+                            {
+                                errout << "<file=\"" << FullFileNames[FileIndex] << "\""
+                                       << " line=\"" << lineno << "\""
+                                       << " severity=\"style\""
+                                       << " id=\"HeaderNotFound\""
+                                       << " message=\"" << errmsg << "\""
+                                       << "/>" << std::endl;
+                            }
+                            else
+                            {
+                                errout << "[" << FullFileNames[FileIndex] << ":" << lineno << "] (style) " << errmsg << std::endl;
+                            }
                         }
                     }
                 }
