@@ -25,12 +25,8 @@
 #include <sstream>
 #include <string>
 #include <cstring>
-//---------------------------------------------------------------------------
-
-
-// Enable debugging messages in this file
-static const bool Debug(false);
 #include <iostream>
+//---------------------------------------------------------------------------
 
 
 //---------------------------------------------------------------------------
@@ -240,7 +236,11 @@ void WarningIncludeHeader(const Tokenizer &tokenizer, bool Progress, bool XmlOut
         // Get symbol names in header..
         std::set<std::string> classlist;
         std::set<std::string> namelist;
-        GetSymbolNames(tokenizer, includetok, Match(includetok, "#include<>"), classlist, namelist);
+        if (!GetSymbolNames(tokenizer, includetok, Match(includetok, "#include<>"), classlist, namelist))
+        {
+            if (Progress)
+                std::cout << "progress: bail out (header not found)" << std::endl;
+        }
 
         if (classlist.empty() && namelist.empty())
             continue;
@@ -297,8 +297,8 @@ void WarningIncludeHeader(const Tokenizer &tokenizer, bool Progress, bool XmlOut
                 const std::string classname(getstr(tok1, (strcmp(getstr(tok1,2),"{")) ? 2 : 1));
                 if (classlist.find(classname) != classlist.end())
                 {
-                    if (Debug)
-                        std::cout << "needed:" << classname << std::endl;
+                    if (Progress)
+                        std::cout << "progress: needed symbol:" << classname << std::endl;
                     Needed = true;
                     break;
                 }
@@ -320,8 +320,8 @@ void WarningIncludeHeader(const Tokenizer &tokenizer, bool Progress, bool XmlOut
             if (namelist.find(tok1->str) != namelist.end() ||
                 classlist.find(tok1->str) != classlist.end())
             {
-                if (Debug)
-                    std::cout << "needed:" << tok1->str << std::endl;
+                if (Progress)
+                    std::cout << "progress: needed symbol: " << tok1->str << std::endl;
                 Needed = true;
                 break;
             }
