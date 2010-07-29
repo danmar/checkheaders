@@ -35,12 +35,13 @@
 #include <iostream>
 #include <sstream>
 #include <cstring>
+#include <set>
 
 
 static bool Debug;      /// --debug
 static bool XmlOutput;  /// --xml
 
-static void CppCheck(const char FileName[], const std::vector<std::string> &includePaths);
+static void CppCheck(const char FileName[], const std::vector<std::string> &includePaths, const std::set<std::string> &skipIncludes);
 
 //---------------------------------------------------------------------------
 // Main function of checkheaders
@@ -50,6 +51,7 @@ int main(int argc, char* argv[])
 {
     std::vector<std::string> filenames;
     std::vector<std::string> includePaths;
+    std::set<std::string> skipIncludes;
 
     for (int i = 1; i < argc; i++)
     {
@@ -58,15 +60,21 @@ int main(int argc, char* argv[])
             Debug = true;
         }
 
-        else if (strcmp(argv[i], "--xml") == 0)
-        {
-            XmlOutput = true;
-        }
-
         else if (strcmp(argv[i], "-I") == 0 && (i + 1) < argc)
         {
             ++i;
             includePaths.push_back(argv[i]);
+        }
+
+        else if (strcmp(argv[i], "--skip") == 0 && (i + 1) < argc)
+        {
+            ++i;
+            skipIncludes.insert(argv[i]);
+        }
+        
+        else if (strcmp(argv[i], "--xml") == 0)
+        {
+            XmlOutput = true;
         }
 
         else
@@ -80,12 +88,14 @@ int main(int argc, char* argv[])
         std::cout << "check headers in C/C++ code to detect unnecessary includes.\n"
                   << "\n"
                   << "Syntax:\n"
-                  << "    checkheaders [-I <path>] [--xml] <path or file>\n"
+                  << "    checkheaders [-I <path>] [--skip <file>] [--xml] <path or file>\n"
                   << "\n"
                   << "Options:\n"
-                  << "    --xml      Output report in xml format\n"
-                  << "    -I <path>  Specify include path. It is only needed if\n"
-                  << "               you see 'Header not found' messages.\n"
+                  << "    -I <path>      Specify include path. It is only needed if\n"
+                  << "                   you see 'Header not found' messages.\n"
+                  << "    --skip <file>  Skip header. Matching #include directives in\n"
+                  << "                   the source code will be skipped.\n"
+                  << "    --xml          Output report in xml format\n"
                   << "\n"
                   << "Example usage:\n"
                   << "    # check all files recursively under myproject\n"
@@ -107,7 +117,7 @@ int main(int argc, char* argv[])
 
     for (unsigned int c = 0; c < filenames.size(); c++)
     {
-        CppCheck(filenames[c].c_str(), includePaths);
+        CppCheck(filenames[c].c_str(), includePaths, skipIncludes);
     }
 
     if (XmlOutput)
@@ -120,13 +130,13 @@ int main(int argc, char* argv[])
 // CppCheck - A function that checks a specified file
 //---------------------------------------------------------------------------
 
-static void CppCheck(const char FileName[], const std::vector<std::string> &includePaths)
+static void CppCheck(const char FileName[], const std::vector<std::string> &includePaths, const std::set<std::string> &skipIncludes)
 {
     std::cout << "Checking " << FileName << "...\n";
 
     // Tokenize the file
     Tokenizer tokenizer;
-    tokenizer.tokenize(FileName, includePaths, XmlOutput, std::cerr);
+    tokenizer.tokenize(FileName, includePaths, skipIncludes, XmlOutput, std::cerr);
 
     // debug output..
     if (Debug)

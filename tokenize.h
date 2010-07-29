@@ -21,6 +21,7 @@
 #define tokenizeH
 //---------------------------------------------------------------------------
 
+#include <set>
 #include <string>
 #include <vector>
 
@@ -37,7 +38,7 @@ class Tokenizer
 private:
     struct Token * tokens_back;
 
-    void tokenizeCode(std::istream &code, const unsigned int FileIndex, const std::vector<std::string> &includePaths, const bool XmlOutput, std::ostream &errout);
+    void tokenizeCode(std::istream &code, const unsigned int FileIndex, const std::vector<std::string> &includePaths, const std::set<std::string> &skipIncludes, const bool XmlOutput, std::ostream &errout);
 
     void addtoken(const char str[], const unsigned int lineno, const unsigned int fileno);
 
@@ -50,10 +51,11 @@ public:
      * @param FileName file name
      * @param SystemHeader is this file included through <>
      * @param includePaths search paths for the file
+     * @param skipIncludes skip #include that match
      * @param XmlOutput should errors be written in xml format?
      * @param errout error stream
      */
-    bool tokenize(const char FileName[], const std::vector<std::string> &includePaths, const bool XmlOutput, std::ostream &errout);
+    bool tokenize(const char FileName[], const std::vector<std::string> &includePaths, const std::set<std::string> &skipIncludes, const bool XmlOutput, std::ostream &errout);
 
     struct Token * tokens;
     std::vector<std::string> FullFileNames;
