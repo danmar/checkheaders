@@ -77,9 +77,21 @@ int main(int argc, char* argv[])
             XmlOutput = true;
         }
 
+        else if (strncmp(argv[i], "-", 1) == 0)
+        {
+            std::cerr << "checkheaders: unrecognized option: '" << argv[i] << "'" << std::endl;
+            return 0;
+        }
+
         else
         {
+            unsigned int sz = filenames.size();
             FileLister::recursiveAddFiles(filenames, argv[i], true);            
+            if (sz == filenames.size())
+            {
+                std::cerr << "checkheaders: file/path not found: '" << argv[i] << "'" << std::endl;
+                return 0;
+            }
         }
     }
 
