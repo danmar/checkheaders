@@ -2,16 +2,17 @@ SRCS=checkheaders.cpp	commoncheck.cpp	filelister.cpp	tokenize.cpp
 OBJS=$(SRCS:%.cpp=%.o)
 HDRS=$(SRCS:%.cpp=%.h)
 CXX=g++
+CXXFLAGS=-g
 APPNAME=checkheaders
 
 %.o:	%.cpp	$(HDRS)
-	$(CXX) -Wall -pedantic -g -I. -o $@ -c $<
+	$(CXX) -Wall -pedantic $(CXXFLAGS) -I. -o $@ -c $<
 
 all:	${OBJS}	main.o
-	$(CXX) -Wall -g -o ${APPNAME} $^
+	$(CXX) -Wall $(CXXFLAGS) -o ${APPNAME} $^
 
 test:	all
-	$(CXX) -I. -Wall -g -o test/testrunner ${OBJS} test/*.cpp
+	$(CXX) -I. -Wall $(CXXFLAGS) -o test/testrunner ${OBJS} test/*.cpp
 	cd test;./testrunner;cd ..
 
 install:
