@@ -37,6 +37,7 @@ private:
     {
         TEST_CASE(implementation1);
         TEST_CASE(implementation2);
+        TEST_CASE(implementation3);
         TEST_CASE(issue3);
         TEST_CASE(needed_define);
         TEST_CASE(needed_typedef);
