@@ -11,6 +11,7 @@ This page will describe the usage of the tool.
 Here is a simple example program:
 {{{
 #include <stdio.h>
+#include <stdlib.h>
 
 int main()
 {
@@ -21,33 +22,41 @@ int main()
 
 If you save that code in the file _main.c_ and then execute `checkheaders main.c` you will see this output:
 {{{
+daniel@daniel-desktop:~$ checkheaders/checkheaders main.c
 Checking main.c...
 [main.c:1] (style) Header not found 'stdio.h'. Use -I or --skip to fix this message.
+[main.c:2] (style) Header not found 'stdlib.h'. Use -I or --skip to fix this message.
 }}}
 
-The `Header not found` is not a serious error message. The checking will not be able to determine if stdio.h is needed or not. But if any other files are included those will be checked.
+When the `Header not found` is shown the checking will not be able to determine if included files are needed or not.
 
 To fix `Header not found` messages you can use either `-I` or `--skip`. The recommendation is to use -I. But if the header is not available you can skip the checking of this file with --skip. When using --skip the result may be wrong error messages (if any needed symbols are not seen).
 
-On my computer the 'stdio.h' file is available in the /usr/include path so therefore I use the command `checkheaders -I /usr/include main.c`. The result is:
+On my computer the 'stdio.h' and 'stdlib.h' files are available in the /usr/include path so therefore I use the command `checkheaders -I /usr/include main.c`. The result is:
 {{{
-daniel@daniel-desktop:~$ checkheaders -I /usr/include main.c
+daniel@daniel-desktop:~$ checkheaders/checkheaders -I /usr/include main.c
 Checking main.c...
 [/usr/include/_G_config.h:14] (style) Header not found 'stddef.h'. Use -I or --skip to fix this message.
+[/usr/include/stdlib.h:32] (style) Header not found 'stddef.h'. Use -I or --skip to fix this message.
 progress: file=main.c checking include stdio.h
+progress: bail out (header not found)
+progress: file=main.c checking include stdlib.h
 progress: bail out (header not found)
 }}}
 
 Now the 'stddef.h' isn't found.
 
-The last message says `progress: bail out (header not found)`. When checking if stdio.h is needed it bails out because one of the included headers wasn't found. Such messages are fixed by fixing all the `Header not found` messages.
+There are two messages that say `progress: bail out (header not found)`. These mean that the checking bails out because included headers wasn't found. Such messages are fixed by fixing the `Header not found` messages.
 
 On my computer the 'stddef.h' is available in /usr/include/linux so I use the command `checkheaders -I /usr/include -I /usr/include/linux main.c`
 {{{
-daniel@daniel-desktop:~$ checkheaders/checkheaders -I /usr/include -I /usr/include/linux main.c
 Checking main.c...
 progress: file=main.c checking include stdio.h
 progress: needed symbol: printf
+progress: file=main.c checking include stdlib.h
+[main.c:2] (style): The included header 'stdlib.h' is not needed
 }}}
 
-The `progress: needed symbol: printf` message says that the printf symbol is used. If the checking can't establish that any symbols are used then it will write an error message. If you comment the printf and recheck you should see an error message.
+The `progress: needed symbol: printf` message says that the printf symbol is used. And for this reason the checkheaders will assume that stdio.h is needed.
+
+The `[main.c:2] (style): The included header 'stdlib.h' is not needed` is written to stderr.
