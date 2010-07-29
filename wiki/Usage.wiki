@@ -48,8 +48,9 @@ Now the 'stddef.h' isn't found.
 
 There are two messages that say `progress: bail out (header not found)`. These mean that the checking bails out because included headers wasn't found. Such messages are fixed by fixing the `Header not found` messages.
 
-On my computer the 'stddef.h' is available in /usr/include/linux so I use the command `checkheaders -I /usr/include -I /usr/include/linux main.c`
+On my computer the 'stddef.h' is available in /usr/include/linux so I add another `-I`
 {{{
+checkheaders -I /usr/include -I /usr/include/linux main.c`
 Checking main.c...
 progress: file=main.c checking include stdio.h
 progress: needed symbol: printf
@@ -60,3 +61,17 @@ progress: file=main.c checking include stdlib.h
 The `progress: needed symbol: printf` message says that the printf symbol is used. And for this reason the checkheaders will assume that stdio.h is needed.
 
 The `[main.c:2] (style): The included header 'stdlib.h' is not needed` is written to stderr.
+
+= Output =
+
+The output can be pretty verbose.
+
+To save error messages to a file you can use:
+{{{
+checkheaders myproject/ 2> errors.txt
+}}}
+
+It can also be useful to hide the information / progress messages on the console. This works in Linux:
+{{{
+checkheaders myproject/ > /dev/null
+}}}
