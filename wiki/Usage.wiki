@@ -1,0 +1,53 @@
+#summary Usage
+#labels Featured
+
+= Introduction =
+
+This page will describe the usage of the tool.
+
+
+= Walkthrough - checking a simple program =
+
+Here is a simple example program:
+{{{
+#include <stdio.h>
+
+int main()
+{
+    printf("hello world\n");
+    return 0;
+}
+}}}
+
+If you save that code in the file _main.c_ and then execute `checkheaders main.c` you will see this output:
+{{{
+Checking main.c...
+[main.c:1] (style) Header not found 'stdio.h'. Use -I or --skip to fix this message.
+}}}
+
+The `Header not found` is not a serious error message. The checking will not be able to determine if stdio.h is needed or not. But if any other files are included those will be checked.
+
+To fix `Header not found` messages you can use either `-I` or `--skip`. The recommendation is to use -I. But if the header is not available you can skip the checking of this file with --skip. When using --skip the result may be wrong error messages (if any needed symbols are not seen).
+
+On my computer the 'stdio.h' file is available in the /usr/include path so therefore I use the command `checkheaders -I /usr/include main.c`. The result is:
+{{{
+daniel@daniel-desktop:~$ checkheaders -I /usr/include main.c
+Checking main.c...
+[/usr/include/_G_config.h:14] (style) Header not found 'stddef.h'. Use -I or --skip to fix this message.
+progress: file=main.c checking include stdio.h
+progress: bail out (header not found)
+}}}
+
+Now the 'stddef.h' isn't found.
+
+The last message says `progress: bail out (header not found)`. When checking if stdio.h is needed it bails out because one of the included headers wasn't found. Such messages are fixed by fixing all the `Header not found` messages.
+
+On my computer the 'stddef.h' is available in /usr/include/linux so I use the command `checkheaders -I /usr/include -I /usr/include/linux main.c`
+{{{
+daniel@daniel-desktop:~$ checkheaders/checkheaders -I /usr/include -I /usr/include/linux main.c
+Checking main.c...
+progress: file=main.c checking include stdio.h
+progress: needed symbol: printf
+}}}
+
+The `progress: needed symbol: printf` message says that the printf symbol is used. If the checking can't establish that any symbols are used then it will write an error message. If you comment the printf and recheck you should see an error message.
