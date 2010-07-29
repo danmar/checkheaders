@@ -247,8 +247,8 @@ void Tokenizer::tokenizeCode(std::istream &code, const unsigned int FileIndex, c
                         free(tokens_back->str);
                         tokens_back->str = strdup("not found");
                     
-                        const std::string errmsg("Header not found: " + line);
-                    
+                        const std::string errmsg("Header not found '" + line + "'. Use -I to fix this message.");
+
                         if (XmlOutput)
                         {
                             errout << "<file=\"" << FullFileNames[FileIndex] << "\""
