@@ -195,9 +195,6 @@ void WarningIncludeHeader(const Tokenizer &tokenizer, bool Progress, bool XmlOut
                 }
             }
 
-            else if (Match(tok,"%type% * %var% ("))
-                names[tok->FileIndex].insert(getstr(tok, 2));
-
             // typedef..
             // --------------------------------------
             else if (strcmp(tok->str,"typedef")==0)
@@ -289,14 +286,23 @@ void WarningIncludeHeader(const Tokenizer &tokenizer, bool Progress, bool XmlOut
                 needed[tok1->FileIndex].insert(classname);
             }
 
-            if (indentlevel == 0 && Match(tok1, "* %var%"))
+            if (indentlevel == 0 && Match(tok1, "%type% * %var%"))
             {
-                needDeclaration[tok1->FileIndex].insert(tok1->next->str);
-                tok1 = tok1->next;
+                const Token *tok2 = gettok(tok1,3);
+                if (Match(gettok(tok1,3), "[,;()[]"))
+                {
+                    needDeclaration[tok1->FileIndex].insert(tok1->str);
+                    tok1 = gettok(tok1, 2);
+                    continue;
+                }
+            }
+
+            if (Match(tok1, "struct") || Match(tok1, "class"))
+            {
                 continue;
             }
 
-            if ( IsName(tok1->str) )
+            if ( IsName(tok1->str) && !Match(tok1->next, "{") )
                 needed[tok1->FileIndex].insert(tok1->str);
         }
     }
@@ -377,7 +383,26 @@ void WarningIncludeHeader(const Tokenizer &tokenizer, bool Progress, bool XmlOut
             if (!Needed)
             {
                 if (!notfound)
-                    ReportErr(tokenizer, XmlOutput, include->tok, "HeaderNotNeeded", std::string("The included header '") + include->tok->next->str + "' is not needed", errout);
+                {
+                    bool NeedDeclaration(false);
+                    for (std::set<unsigned int>::const_iterator it = AllIncludes.begin(); it != AllIncludes.end(); ++it)
+                    {
+                        std::set<std::string> empty;
+                        const std::string sym = matchSymbols(needDeclaration[fileIndex], classes[*it], empty);
+                        if (!sym.empty())
+                        {
+                            NeedDeclaration = true;
+                            break;
+                        }
+                    }
+
+                    std::ostringstream errmsg;
+                    errmsg << "The included header '" << include->tok->next->str << "' is not needed";
+                    if (NeedDeclaration)
+                        errmsg << " (but forward declaration is needed)";
+
+                    ReportErr(tokenizer, XmlOutput, include->tok, "HeaderNotNeeded", errmsg.str(), errout);
+                }
                 else if (Progress)
                     std::cout << "progress: bail out (header not found)" << std::endl;
             }
