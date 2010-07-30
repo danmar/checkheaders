@@ -50,6 +50,10 @@ void Tokenizer::addtoken(const char str[], const unsigned int lineno, const unsi
     if (str[0] == 0)
         return;
 
+    // don't add "const"
+    if (strcmp(str, "const") == 0)
+        return;
+
     // Replace hexadecimal value with decimal
 	std::ostringstream str2;
 	if (strncmp(str,"0x",2)==0)

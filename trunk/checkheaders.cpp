@@ -42,7 +42,7 @@ void WarningHeaderWithImplementation(const Tokenizer &tokenizer, bool XmlOutput,
         if (tok->FileIndex == 0)
             continue;
 
-        if (Match(tok, ") const| {"))
+        if (Match(tok, ") {"))
         {
             std::ostringstream ostr;
             ostr << "Found implementation in header";
@@ -155,12 +155,6 @@ void WarningIncludeHeader(const Tokenizer &tokenizer, bool Progress, bool XmlOut
             else if (Match(tok, "%type% * %var% ;") || Match(tok, "%type% * %var% ["))
                 names[tok->FileIndex].insert(getstr(tok, 2));
 
-            else if (Match(tok, "const %type% %var% =") || Match(tok, "const %type% %var% ["))
-                names[tok->FileIndex].insert(getstr(tok, 2));
-
-            else if (Match(tok, "const %type% * %var% =") || Match(tok, "const %type% * %var% ["))
-                names[tok->FileIndex].insert(getstr(tok, 3));
-
             // enum..
             // --------------------------------------
             else if (strcmp(tok->str, "enum") == 0)
@@ -181,12 +175,6 @@ void WarningIncludeHeader(const Tokenizer &tokenizer, bool Progress, bool XmlOut
 
             else if (Match(tok,"%type% * %var% ("))
                 names[tok->FileIndex].insert(getstr(tok, 2));
-
-            else if (Match(tok,"const %type% %var% ("))
-                names[tok->FileIndex].insert(getstr(tok, 2));
-
-            else if (Match(tok,"const %type% * %var% ("))
-                names[tok->FileIndex].insert(getstr(tok, 3));
 
             // typedef..
             // --------------------------------------
@@ -258,7 +246,7 @@ void WarningIncludeHeader(const Tokenizer &tokenizer, bool Progress, bool XmlOut
             }
 
             // implementation begins..
-            if (indentlevel == 0 && (Match(tok1, ") {") || Match(tok1, ") const {")))
+            if (indentlevel == 0 && Match(tok1, ") {"))
             {
                 // Go to the "{"
                 while (tok1->str[0] != '{')
