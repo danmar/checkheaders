@@ -147,6 +147,9 @@ void WarningIncludeHeader(const Tokenizer &tokenizer, bool Progress, bool XmlOut
             if (Match(tok,"class %var% {") || Match(tok,"class %var% :") || Match(tok,"struct %var% {"))
                 classes[tok->FileIndex].insert(getstr(tok, 1));
 
+            else if (Match(tok, "struct %var% ;") || Match(tok, "class %var% ;"))
+                continue;
+
             // Variable declaration..
             // --------------------------------------
             else if (Match(tok, "%type% %var% ;") || Match(tok, "%type% %var% ["))
@@ -170,8 +173,27 @@ void WarningIncludeHeader(const Tokenizer &tokenizer, bool Progress, bool XmlOut
                 
             // function..  
             // --------------------------------------
-            else if (Match(tok,"%type% %var% ("))
-                names[tok->FileIndex].insert(getstr(tok, 1));
+            else if (Match(tok,"%type% %var% (") ||
+                     Match(tok,"%type% * %var% ("))
+            {
+                tok = tok->next;
+                if (tok->str[0] == '*')
+                    tok = tok->next;
+                names[tok->FileIndex].insert(tok->str);
+                unsigned int parlevel = 0;
+                while (tok->next)
+                {
+                    if (tok->str[0] == '(')
+                        ++parlevel;
+                    else if (tok->str[0] == ')')
+                    {
+                        --parlevel;
+                        if (parlevel == 0)
+                            break;
+                    }
+                    tok = tok->next;
+                }
+            }
 
             else if (Match(tok,"%type% * %var% ("))
                 names[tok->FileIndex].insert(getstr(tok, 2));
