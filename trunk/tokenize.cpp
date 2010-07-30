@@ -223,6 +223,8 @@ void Tokenizer::tokenizeCode(std::istream &code, const unsigned int FileIndex, c
             if (line.compare(0, 8, "#include")==0)
             {
                 getline(code, line);
+                if (line.find("//") != std::string::npos)
+                    line.erase(line.find("//"));
 
                 if (line.find_first_of("<\"") != std::string::npos)
                 {
