@@ -41,7 +41,8 @@ private:
         TEST_CASE(needed_define);
         TEST_CASE(needed_typedef);
         TEST_CASE(stdafx);
-        TEST_CASE(standard_header);
+        TEST_CASE(standardheader1);
+        TEST_CASE(standardheader2);
         TEST_CASE(test1);
     }
 
@@ -190,25 +191,51 @@ private:
         ASSERT_EQUALS("", errout.str());
     }
     
-    void standard_header()
+    void standardheader1()
     {
         {
-            std::ofstream f1("standard_header.c");
-            f1 << "#include <standard_header.h>\n";
+            std::ofstream f1("standardheader1.c");
+            f1 << "#include <standardheader1.h>\n";
 
-            std::ofstream f2("standard_header.h");
+            std::ofstream f2("standardheader1.h");
             f2 << "void foo();\n";
         }
 
         std::ostringstream errout;
 
         Tokenizer tokenizer;
-        tokenizer.tokenize("standard_header.c", includePaths, skipIncludes, false, errout);
+        tokenizer.tokenize("standardheader1.c", includePaths, skipIncludes, false, errout);
 
         // Including header which is not needed
         WarningIncludeHeader(tokenizer, false, false, errout);
 
-        ASSERT_EQUALS("[standard_header.c:1] (style): The included header 'standard_header.h' is not needed\n", errout.str());
+        ASSERT_EQUALS("[standardheader1.c:1] (style): The included header 'standardheader1.h' is not needed\n", errout.str());
+    }
+
+    void standardheader2()
+    {
+        {
+            std::ofstream f1("standardheader2.c");
+            f1 << "#include <standardheader2.h>\n"
+               << "void f()\n"
+               << "{ x(); }";
+
+            std::ofstream f2("standardheader2.h");
+            f2 << "#include <x.h>\n";
+
+            std::ofstream f3("x.h");
+            f3 << "void x();";
+        }
+
+        std::ostringstream errout;
+
+        Tokenizer tokenizer;
+        tokenizer.tokenize("standardheader2.c", includePaths, skipIncludes, false, errout);
+
+        // Including header which is not needed
+        WarningIncludeHeader(tokenizer, false, false, errout);
+
+        ASSERT_EQUALS("", errout.str());
     }
     
     void test1()

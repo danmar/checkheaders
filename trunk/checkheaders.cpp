@@ -22,6 +22,7 @@
 #include "commoncheck.h"
 #include <algorithm>
 #include <set>
+#include <list>
 #include <sstream>
 #include <string>
 #include <cstring>
@@ -59,134 +60,53 @@ void WarningHeaderWithImplementation(const Tokenizer &tokenizer, bool XmlOutput,
 // HEADERS - Unneeded include
 //---------------------------------------------------------------------------
 
-static bool GetSymbolNames(const Tokenizer &tokenizer, const Token *includetok, const bool SystemHeader, std::set<std::string> &classlist, std::set<std::string> &namelist)
+static std::string matchSymbols(const std::set<std::string> &needed, const std::set<std::string> & classes, const std::set<std::string> & names)
 {
-    // Get fileindex of included file..
-    unsigned int hfile = 0;
-    const char *includefile = includetok->next->str;
-    if (strcmp("not found", includefile) == 0)
+    for (std::set<std::string>::const_iterator sym = needed.begin(); sym != needed.end(); ++sym)
     {
-        return false;
+        if (classes.find(*sym) != classes.end() ||
+            names.find(*sym) != names.end())
+        {
+            return *sym;
+        }
     }
-    while (hfile < tokenizer.ShortFileNames.size())
+    return "";
+}
+
+class IncludeInfo
+{
+public:
+    IncludeInfo(const Token *t, unsigned int i)
     {
-        if ( SameFileName( tokenizer.ShortFileNames[hfile].c_str(), includefile ) )
-            break;
-        hfile++;
-    }
-    if (hfile == tokenizer.ShortFileNames.size())
-        return false;
-
-
-    // Extract classes and names in the header..
-    int indentlevel = 0;
-    for (const Token *tok1 = tokenizer.tokens; tok1; tok1 = tok1->next )
-    {
-        if ( tok1->FileIndex != hfile )
-            continue;
-
-        // Extract symbol names recursively if it's a system header
-        if (SystemHeader && strncmp(tok1->str, "#include", 8) == 0)
-        {
-            if (!GetSymbolNames(tokenizer, tok1, SystemHeader, classlist, namelist))
-            {
-                classlist.clear();
-                namelist.clear();
-                return false;
-            }
-        }
-
-        // I'm only interested in stuff that is declared at indentlevel 0
-        if (tok1->str[0] == '{')
-            indentlevel++;
-
-        else if (tok1->str[0] == '}')
-            indentlevel--;
-
-        if (indentlevel != 0)
-            continue;
-
-        // Class or namespace declaration..
-        // --------------------------------------
-        if (Match(tok1,"class %var% {") || Match(tok1,"class %var% :") || Match(tok1,"namespace %var% {") || Match(tok1,"struct %var% {"))
-            classlist.insert(getstr(tok1, 1));
-
-        // Variable declaration..
-        // --------------------------------------
-        else if (Match(tok1, "%type% %var% ;") || Match(tok1, "%type% %var% ["))
-            namelist.insert(getstr(tok1, 1));
-
-        else if (Match(tok1, "%type% * %var% ;") || Match(tok1, "%type% * %var% ["))
-            namelist.insert(getstr(tok1, 2));
-
-        else if (Match(tok1, "const %type% %var% =") || Match(tok1, "const %type% %var% ["))
-            namelist.insert(getstr(tok1, 2));
-
-        else if (Match(tok1, "const %type% * %var% =") || Match(tok1, "const %type% * %var% ["))
-            namelist.insert(getstr(tok1, 3));
-
-        // enum..
-        // --------------------------------------
-        else if (strcmp(tok1->str, "enum") == 0)
-        {
-            tok1 = tok1->next;
-            while (tok1->next && tok1->str[0]!=';')
-            {
-                if ( IsName(tok1->str) )
-                    namelist.insert(tok1->str);
-                tok1 = tok1->next;
-            }
-        }
-                
-        // function..  
-        // --------------------------------------
-        else if (Match(tok1,"%type% %var% ("))
-            namelist.insert(getstr(tok1, 1));
-
-        else if (Match(tok1,"%type% * %var% ("))
-            namelist.insert(getstr(tok1, 2));
-
-        else if (Match(tok1,"const %type% %var% ("))
-            namelist.insert(getstr(tok1, 2));
-
-        else if (Match(tok1,"const %type% * %var% ("))
-            namelist.insert(getstr(tok1, 3));
-
-        // typedef..
-        // --------------------------------------
-        else if (strcmp(tok1->str,"typedef")==0)
-        {
-            if (strcmp(getstr(tok1,1),"enum")==0)
-                continue;
-            int parlevel = 0;
-            while (tok1->next)
-            {
-                if ( strchr("({", tok1->str[0]) )
-                    parlevel++;
-
-                else if ( strchr(")}", tok1->str[0]) )
-                    parlevel--;
-
-                else if (parlevel == 0)
-                {
-                    if ( tok1->str[0] == ';' )
-                        break;
-
-                    if ( Match(tok1, "%var% ;") )
-                        namelist.insert(tok1->str);
-                }
-
-                tok1 = tok1->next;
-            }
-        }
-
-        // #define..
-        // --------------------------------------
-        else if (Match(tok1, "#define %var%"))
-            namelist.insert(tok1->next->str);
+        tok = t;
+        hfile = i;
     }
 
-    return true;
+    IncludeInfo(const IncludeInfo &info)
+    {
+        tok = info.tok;
+        hfile = info.hfile;
+    }
+    
+    const Token *tok;
+    unsigned int hfile;
+};
+
+static void getincludes(const std::vector< std::list<IncludeInfo> > &includes, const unsigned int hfile, std::set<unsigned int> &result, bool &notfound)
+{
+    if (hfile < includes.size())
+    {
+        for (std::list<IncludeInfo>::const_iterator it = includes[hfile].begin(); it != includes[hfile].end(); ++it)
+        {
+            if (it->hfile >= includes.size())
+                notfound = true;
+            else if (result.find(it->hfile) == result.end())
+            {
+                result.insert(it->hfile);
+                getincludes(includes, it->hfile, result, notfound);
+            }
+        }
+    }
 }
 
 void WarningIncludeHeader(const Tokenizer &tokenizer, bool Progress, bool XmlOutput, std::ostream &errout)
@@ -198,78 +118,139 @@ void WarningIncludeHeader(const Tokenizer &tokenizer, bool Progress, bool XmlOut
     // * It contains some needed variable
     // * It contains some needed enum
 
-    // System headers are not checked..
-    std::set<unsigned int> SystemHeaders;
+    // class names..
+    std::vector< std::set<std::string> > classes(tokenizer.ShortFileNames.size(), std::set<std::string>());
 
-    // Including..
-    for (const Token *includetok = tokenizer.tokens; includetok; includetok = includetok->next)
+    // symbol names..
+    std::vector< std::set<std::string> > names(tokenizer.ShortFileNames.size(), std::set<std::string>());
+
+    // Extract symbols from the files..
     {
-        if (strncmp(includetok->str, "#include", 8) != 0)
-            continue;
-
-        if (strcmp(includetok->str, "#include<>") == 0)
+        int indentlevel = 0;
+        for (const Token *tok = tokenizer.tokens; tok; tok = tok->next)
         {
-            // Get index of included file:
-            unsigned int hfile = 0;
-            const char *includefile = includetok->next->str;
-            while (hfile < tokenizer.ShortFileNames.size())
+            // Don't extract symbols in the main source file
+            if (tok->FileIndex == 0)
+                continue;
+            
+            if (tok->str[0] == '{')
+                indentlevel++;
+
+            else if (tok->str[0] == '}')
+                indentlevel--;
+
+            if (indentlevel != 0)
+                continue;
+
+            // Class or namespace declaration..
+            // --------------------------------------
+            if (Match(tok,"class %var% {") || Match(tok,"class %var% :") || Match(tok,"struct %var% {"))
+                classes[tok->FileIndex].insert(getstr(tok, 1));
+
+            // Variable declaration..
+            // --------------------------------------
+            else if (Match(tok, "%type% %var% ;") || Match(tok, "%type% %var% ["))
+                names[tok->FileIndex].insert(getstr(tok, 1));
+
+            else if (Match(tok, "%type% * %var% ;") || Match(tok, "%type% * %var% ["))
+                names[tok->FileIndex].insert(getstr(tok, 2));
+
+            else if (Match(tok, "const %type% %var% =") || Match(tok, "const %type% %var% ["))
+                names[tok->FileIndex].insert(getstr(tok, 2));
+
+            else if (Match(tok, "const %type% * %var% =") || Match(tok, "const %type% * %var% ["))
+                names[tok->FileIndex].insert(getstr(tok, 3));
+
+            // enum..
+            // --------------------------------------
+            else if (strcmp(tok->str, "enum") == 0)
             {
-                if ( SameFileName( tokenizer.ShortFileNames[hfile].c_str(), includefile ) )
-                    break;
-                hfile++;
+                tok = tok->next;
+                while (tok->next && tok->str[0]!=';')
+                {
+                    if ( IsName(tok->str) )
+                        names[tok->FileIndex].insert(tok->str);
+                    tok = tok->next;
+                }
+            }
+                
+            // function..  
+            // --------------------------------------
+            else if (Match(tok,"%type% %var% ("))
+                names[tok->FileIndex].insert(getstr(tok, 1));
+
+            else if (Match(tok,"%type% * %var% ("))
+                names[tok->FileIndex].insert(getstr(tok, 2));
+
+            else if (Match(tok,"const %type% %var% ("))
+                names[tok->FileIndex].insert(getstr(tok, 2));
+
+            else if (Match(tok,"const %type% * %var% ("))
+                names[tok->FileIndex].insert(getstr(tok, 3));
+
+            // typedef..
+            // --------------------------------------
+            else if (strcmp(tok->str,"typedef")==0)
+            {
+                if (strcmp(getstr(tok,1),"enum")==0)
+                    continue;
+                int parlevel = 0;
+                while (tok->next)
+                {
+                    if ( strchr("({", tok->str[0]) )
+                        parlevel++;
+
+                    else if ( strchr(")}", tok->str[0]) )
+                        parlevel--;
+
+                    else if (parlevel == 0)
+                    {
+                        if ( tok->str[0] == ';' )
+                            break;
+
+                        if ( Match(tok, "%var% ;") )
+                            names[tok->FileIndex].insert(tok->str);
+                    }
+    
+                    tok = tok->next;
+                }
             }
 
-            // Add index to SystemHeaders to indicate that it's a system header
-            SystemHeaders.insert(hfile);
+            // #define..
+            // --------------------------------------
+            else if (Match(tok, "#define %var%"))
+                names[tok->FileIndex].insert(tok->next->str);
         }
+    }
 
-        // Is the current file a system header? If so don't check it.
-        if (SystemHeaders.find(includetok->FileIndex) != SystemHeaders.end())
-            continue;
 
-        if (strcmp(includetok->next->str, "not found") == 0)
-            continue;
-
-        if (Progress)
-            std::cout << "progress: file=" << tokenizer.ShortFileNames[includetok->FileIndex] << " checking include " << includetok->next->str << std::endl;
-
-        // Get symbol names in header..
-        std::set<std::string> classlist;
-        std::set<std::string> namelist;
-        if (!GetSymbolNames(tokenizer, includetok, Match(includetok, "#include<>"), classlist, namelist))
+    // System headers are checked differently..
+    std::vector<unsigned int> SystemHeaders(tokenizer.ShortFileNames.size(), 0);
+    for (const Token *tok = tokenizer.tokens; tok; tok = tok->next)
+    {
+        if (strcmp(tok->str, "#include<>") == 0 ||
+            (SystemHeaders[tok->FileIndex] && strcmp(tok->str, "#include") == 0))
         {
-            if (Progress)
-                std::cout << "progress: bail out (header not found)" << std::endl;
+            // Get index of included file:
+            const char *includefile = tok->next->str;
+            for (unsigned int hfile = 0; hfile < tokenizer.ShortFileNames.size(); ++hfile)
+            {
+                if ( SameFileName( tokenizer.ShortFileNames[hfile].c_str(), includefile ) )
+                {
+                    SystemHeaders[hfile] = 1;
+                    break;
+                }
+            }
         }
+    }
 
-        if (classlist.empty() && namelist.empty())
-            continue;
-
-        // remove keywords..
-        const char *keywords[] = { "void", "bool", "char", "short", "int", "long", "float", "long",
-                                   "unsigned", "signed",
-                                   "if", "switch", "while", "for",
-                                   "return",
-                                   "catch",
-                                   "defined",    // preprocessor command
-                                   "std",        // namespace to ignore
-                                   NULL };
-        for (unsigned int i = 0; NULL != keywords[i]; ++i)
-        {
-            const std::string name(keywords[i]);
-            classlist.erase(name);
-            namelist.erase(name);
-        }
-
-        // Check if the extracted names are used...
-        bool Needed = false;
-        bool NeedDeclaration = false;
+    // Get all needed symbols..
+    std::vector< std::set<std::string> > needed(tokenizer.ShortFileNames.size(), std::set<std::string>() );
+    std::vector< std::set<std::string> > needDeclaration(tokenizer.ShortFileNames.size(), std::set<std::string>() );
+    {
         int indentlevel = 0;
         for (const Token *tok1 = tokenizer.tokens; tok1; tok1 = tok1->next)
         {
-            if (tok1->FileIndex != includetok->FileIndex)
-                continue;
-
             if (strncmp(tok1->str, "#include", 8) == 0)
             {
                 tok1 = tok1->next;
@@ -295,46 +276,101 @@ void WarningIncludeHeader(const Tokenizer &tokenizer, bool Progress, bool XmlOut
             if ( Match(tok1, ": %var% {") || Match(tok1, ": %type% %var% {") )
             {
                 const std::string classname(getstr(tok1, (strcmp(getstr(tok1,2),"{")) ? 2 : 1));
-                if (classlist.find(classname) != classlist.end())
-                {
-                    if (Progress)
-                        std::cout << "progress: needed symbol:" << classname << std::endl;
-                    Needed = true;
-                    break;
-                }
+                needed[tok1->FileIndex].insert(classname);
             }
 
             if (indentlevel == 0 && Match(tok1, "* %var%"))
             {
-                if (classlist.find(tok1->str) != classlist.end())
-                {
-                    NeedDeclaration = true;
-                    tok1 = tok1->next;
-                    continue;
-                }
+                needDeclaration[tok1->FileIndex].insert(tok1->next->str);
+                tok1 = tok1->next;
+                continue;
             }
 
-            if ( ! IsName(tok1->str) )
+            if ( IsName(tok1->str) )
+                needed[tok1->FileIndex].insert(tok1->str);
+        }
+    }
+
+    // Remove keywords..
+    for (unsigned int i = 0; i < tokenizer.ShortFileNames.size(); ++i)
+    {
+        const char *keywords[] = { "defined", // preprocessor
+                                   "void", "bool", "char", "short", "int", "long", "float", "double",
+                                   "false", "true",
+                                   "std",
+                                   NULL
+                                 };
+                                 
+        for (unsigned int k = 0; keywords[k]; ++k)
+        {
+            needed[i].erase(keywords[k]);
+            needDeclaration[i].erase(keywords[k]);
+        }
+    }
+
+    // Extract all includes..
+    std::vector< std::list<IncludeInfo> > includes(tokenizer.ShortFileNames.size(), std::list< IncludeInfo >());
+    for (const Token *tok = tokenizer.tokens; tok; tok = tok->next)
+    {
+        if (strncmp(tok->str, "#include", 8) == 0)
+        {
+            // Get index of included file:
+            unsigned int hfile;
+            const char *includefile = tok->next->str;
+            for (hfile = 0; hfile < tokenizer.ShortFileNames.size(); ++hfile)
+            {
+                if ( SameFileName( tokenizer.ShortFileNames[hfile].c_str(), includefile ) )
+                    break;
+            }
+            includes[tok->FileIndex].push_back(IncludeInfo(tok, hfile));
+        }
+    }
+
+    // Check if there are redundant includes..
+    for (unsigned int fileIndex = 0; fileIndex < tokenizer.ShortFileNames.size(); ++fileIndex)
+    {
+        // Is the current file a system header? If so don't check it.
+        if (SystemHeaders[fileIndex])
+            continue;
+
+        for (std::list<IncludeInfo>::const_iterator include = includes[fileIndex].begin(); include != includes[fileIndex].end(); ++include)
+        {
+            // include not found
+            if (include->hfile >= tokenizer.ShortFileNames.size())
                 continue;
 
-            if (namelist.find(tok1->str) != namelist.end() ||
-                classlist.find(tok1->str) != classlist.end())
+            if (Progress)
             {
-                if (Progress)
-                    std::cout << "progress: needed symbol: " << tok1->str << std::endl;
-                Needed = true;
-                break;
+                std::cout << "progress: file " << tokenizer.ShortFileNames[fileIndex] << " checking include " << tokenizer.ShortFileNames[include->hfile] << std::endl;
             }
-        }
 
-        // Not needed!
-        if (!Needed)
-        {
-            std::ostringstream ostr;
-            ostr << "The included header '" << includetok->next->str << "' is not needed";
-            if (NeedDeclaration)
-                ostr << " (but a forward declaration is needed)";
-            ReportErr(tokenizer, XmlOutput, includetok, "HeaderNotNeeded", ostr.str(), errout);
+            // Get all includes
+            std::set<unsigned int> AllIncludes;
+            bool notfound = false;
+            AllIncludes.insert(include->hfile);
+            if (SystemHeaders[include->hfile])
+                getincludes(includes, include->hfile, AllIncludes, notfound);
+
+            // match symbols: needed
+            bool Needed(false);
+            for (std::set<unsigned int>::const_iterator it = AllIncludes.begin(); it != AllIncludes.end(); ++it)
+            {
+                const std::string sym = matchSymbols(needed[fileIndex], classes[*it], names[*it]);
+                if (!sym.empty())
+                {
+                    if (Progress)
+                        std::cout << "progress: needed symbol '" << sym << "'" << std::endl;
+                    Needed = true;
+                    break;
+                }
+            }
+            if (!Needed)
+            {
+                if (!notfound)
+                    ReportErr(tokenizer, XmlOutput, include->tok, "HeaderNotNeeded", std::string("The included header '") + include->tok->next->str + "' is not needed", errout);
+                else if (Progress)
+                    std::cout << "progress: bail out (header not found)" << std::endl;
+            }
         }
     }
 }
