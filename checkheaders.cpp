@@ -288,7 +288,6 @@ void WarningIncludeHeader(const Tokenizer &tokenizer, bool Progress, bool XmlOut
 
             if (indentlevel == 0 && Match(tok1, "%type% * %var%"))
             {
-                const Token *tok2 = gettok(tok1,3);
                 if (Match(gettok(tok1,3), "[,;()[]"))
                 {
                     needDeclaration[tok1->FileIndex].insert(tok1->str);
