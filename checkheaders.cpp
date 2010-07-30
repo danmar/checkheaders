@@ -255,6 +255,9 @@ void WarningIncludeHeader(const Tokenizer &tokenizer, bool Progress, bool XmlOut
     std::vector< std::set<std::string> > needed(tokenizer.ShortFileNames.size(), std::set<std::string>() );
     std::vector< std::set<std::string> > needDeclaration(tokenizer.ShortFileNames.size(), std::set<std::string>() );
     {
+        // Which files contain implementation?
+        std::vector<unsigned int> HasImplementation(tokenizer.ShortFileNames.size(), 0);
+    
         int indentlevel = 0;
         for (const Token *tok1 = tokenizer.tokens; tok1; tok1 = tok1->next)
         {
@@ -271,6 +274,7 @@ void WarningIncludeHeader(const Tokenizer &tokenizer, bool Progress, bool XmlOut
                 while (tok1->str[0] != '{')
                     tok1 = tok1->next;
                 indentlevel = 1;
+                HasImplementation[tok1->FileIndex] = 1;
 			}
             else if (indentlevel >= 1)
             {
@@ -303,6 +307,16 @@ void WarningIncludeHeader(const Tokenizer &tokenizer, bool Progress, bool XmlOut
 
             if ( IsName(tok1->str) && !Match(tok1->next, "{") )
                 needed[tok1->FileIndex].insert(tok1->str);
+        }
+
+        // Move needDeclaration symbols to needed for all files that has
+        // implementation..
+        for (unsigned int i = 0; i < HasImplementation.size(); ++i)
+        {
+            if (HasImplementation[i])
+            {
+                needed[i].insert(needDeclaration[i].begin(), needDeclaration[i].end());
+            }
         }
     }
 

@@ -36,6 +36,7 @@ private:
     void run()
     {
         TEST_CASE(declaration1);
+        TEST_CASE(declaration2);
         TEST_CASE(implementation1);
         TEST_CASE(implementation2);
         TEST_CASE(issue3);
@@ -70,6 +71,36 @@ private:
         WarningIncludeHeader(tokenizer, false, false, errout);
 
         ASSERT_EQUALS("[declaration1.c:1] (style): The included header 'declaration1.h' is not needed (but forward declaration is needed)\n", errout.str());
+    }
+
+    void declaration2()
+    {
+        // Header is not needed
+        {
+            std::ofstream f1("declaration2.c");
+            f1 << "#include \"declaration2.h\"\n"
+               << "Foo *foo;\n"
+               << "void f()\n"
+               << "{\n"
+               << "    foo->x();\n"
+               << "}\n";
+
+            std::ofstream f2("declaration2.h");
+            f2 << "struct Foo\n"
+               << "{\n"
+               << "    void x();\n"
+               << "};\n";
+        }
+
+        std::ostringstream errout;
+        
+        Tokenizer tokenizer;
+        tokenizer.tokenize("declaration2.c", includePaths, skipIncludes, false, errout);
+
+        // Including header which is not needed
+        WarningIncludeHeader(tokenizer, false, false, errout);
+
+        ASSERT_EQUALS("", errout.str());
     }
 
     void implementation1()
