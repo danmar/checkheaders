@@ -481,20 +481,20 @@ void Tokenizer::tokenizeCode(std::istream &code, const unsigned int FileIndex, c
 // Helper functions for handling the tokens list
 //---------------------------------------------------------------------------
 
-const Token *gettok(const Token *tok, int index)
+const Token *gettok(const Token *tok, int offset)
 {
-    while (tok && index>0)
+    while (tok && offset>0)
     {
         tok = tok->next;
-        index--;
+        offset--;
     }
     return tok;
 }
 //---------------------------------------------------------------------------
 
-const char *getstr(const Token *tok, int index)
+const char *getstr(const Token *tok, int offset)
 {
-    tok = gettok(tok, index);
+    tok = gettok(tok, offset);
     return tok ? tok->str : "";
 }
 //---------------------------------------------------------------------------
