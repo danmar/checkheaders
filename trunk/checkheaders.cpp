@@ -126,7 +126,7 @@ void WarningIncludeHeader(const Tokenizer &tokenizer, bool Progress, bool XmlOut
 
     // Extract symbols from the files..
     {
-        int indentlevel = 0;
+        unsigned int indentlevel = 0;
         for (const Token *tok = tokenizer.tokens; tok; tok = tok->next)
         {
             // Don't extract symbols in the main source file
@@ -136,7 +136,7 @@ void WarningIncludeHeader(const Tokenizer &tokenizer, bool Progress, bool XmlOut
             if (tok->str[0] == '{')
                 indentlevel++;
 
-            else if (tok->str[0] == '}')
+            else if (indentlevel > 0 && tok->str[0] == '}')
                 indentlevel--;
 
             if (indentlevel != 0)
@@ -180,19 +180,8 @@ void WarningIncludeHeader(const Tokenizer &tokenizer, bool Progress, bool XmlOut
                 if (tok->str[0] == '*')
                     tok = tok->next;
                 names[tok->FileIndex].insert(tok->str);
-                unsigned int parlevel = 0;
-                while (tok->next)
-                {
-                    if (tok->str[0] == '(')
-                        ++parlevel;
-                    else if (tok->str[0] == ')')
-                    {
-                        --parlevel;
-                        if (parlevel == 0)
-                            break;
-                    }
+                while (tok->next && tok->str[0] != ')')
                     tok = tok->next;
-                }
             }
 
             // typedef..
@@ -201,24 +190,11 @@ void WarningIncludeHeader(const Tokenizer &tokenizer, bool Progress, bool XmlOut
             {
                 if (strcmp(getstr(tok,1),"enum")==0)
                     continue;
-                int parlevel = 0;
-                while (tok->next)
+                while (tok->str[0] != ';' && tok->next)
                 {
-                    if ( strchr("({", tok->str[0]) )
-                        parlevel++;
+                    if ( Match(tok, "%var% ;") )
+                        names[tok->FileIndex].insert(tok->str);
 
-                    else if ( strchr(")}", tok->str[0]) )
-                        parlevel--;
-
-                    else if (parlevel == 0)
-                    {
-                        if ( tok->str[0] == ';' )
-                            break;
-
-                        if ( Match(tok, "%var% ;") )
-                            names[tok->FileIndex].insert(tok->str);
-                    }
-    
                     tok = tok->next;
                 }
             }
