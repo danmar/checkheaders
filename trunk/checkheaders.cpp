@@ -324,9 +324,20 @@ void WarningIncludeHeader(const Tokenizer &tokenizer, bool Progress, bool XmlOut
     for (unsigned int i = 0; i < tokenizer.ShortFileNames.size(); ++i)
     {
         const char *keywords[] = { "defined", // preprocessor
-                                   "void", "bool", "char", "short", "int", "long", "float", "double",
-                                   "false", "true",
+                                   "void",
+                                   "bool",
+                                   "char",
+                                   "short",
+                                   "int",
+                                   "long",
+                                   "float",
+                                   "double",
+                                   "false",
+                                   "true",
                                    "std",
+                                   "if",
+                                   "for",
+                                   "while",
                                    NULL
                                  };
                                  
