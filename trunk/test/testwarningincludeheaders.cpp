@@ -42,7 +42,8 @@ private:
         TEST_CASE(issue3);
         TEST_CASE(needed_class);
         TEST_CASE(needed_const);
-        TEST_CASE(needed_define);
+        TEST_CASE(needed_define1);
+        TEST_CASE(needed_define2);
         TEST_CASE(needed_typedef);
         TEST_CASE(needed_namespace);
         TEST_CASE(stdafx);
@@ -239,21 +240,45 @@ private:
         ASSERT_EQUALS("", errout.str());
     }
 
-    void needed_define()
+    void needed_define1()
     {
         {
-            std::ofstream f1("needed_define.c");
-            f1 << "#include \"needed_define.h\"\n"
+            std::ofstream f1("needed_define1.c");
+            f1 << "#include \"needed_define1.h\"\n"
                << "void foo() __attribute__((deprecated));\n";
 
-            std::ofstream f2("needed_define.h");
+            std::ofstream f2("needed_define1.h");
             f2 << "#define __attribute__(x)\n";
         }
 
         std::ostringstream errout;
 
         Tokenizer tokenizer;
-        tokenizer.tokenize("needed_define.c", includePaths, skipIncludes, false, errout);
+        tokenizer.tokenize("needed_define1.c", includePaths, skipIncludes, false, errout);
+
+        // Including header which is not needed
+        WarningIncludeHeader(tokenizer, false, false, errout);
+
+        ASSERT_EQUALS("", errout.str());
+    }
+
+    void needed_define2()
+    {
+        {
+            std::ofstream f1("needed_define2.c");
+            f1 << "#include \"needed_define2.h\"\n"
+               << "void f() { b(1,XY,2); }\n";
+
+            std::ofstream f2("needed_define2.h");
+            f2 << "extern \"C\" {"
+               << "#define XY 0x033\n"
+               << "}";
+        }
+
+        std::ostringstream errout;
+
+        Tokenizer tokenizer;
+        tokenizer.tokenize("needed_define2.c", includePaths, skipIncludes, false, errout);
 
         // Including header which is not needed
         WarningIncludeHeader(tokenizer, false, false, errout);
