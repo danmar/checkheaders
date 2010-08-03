@@ -158,10 +158,10 @@ void WarningIncludeHeader(const Tokenizer &tokenizer, bool Progress, bool XmlOut
 
             // Variable declaration..
             // --------------------------------------
-            else if (Match(tok, "%type% %var% ;") || Match(tok, "%type% %var% ["))
+            else if (Match(tok, "%type% %var% ;") || Match(tok, "%type% %var% [") || Match(tok, "%type% %var% ="))
                 names[tok->FileIndex].insert(getstr(tok, 1));
 
-            else if (Match(tok, "%type% * %var% ;") || Match(tok, "%type% * %var% ["))
+            else if (Match(tok, "%type% * %var% ;") || Match(tok, "%type% * %var% [") || Match(tok, "%type% * %var% ="))
                 names[tok->FileIndex].insert(getstr(tok, 2));
 
             // enum..

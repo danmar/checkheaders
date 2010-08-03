@@ -40,6 +40,7 @@ private:
         TEST_CASE(implementation1);
         TEST_CASE(implementation2);
         TEST_CASE(issue3);
+        TEST_CASE(needed_const);
         TEST_CASE(needed_define);
         TEST_CASE(needed_typedef);
         TEST_CASE(needed_namespace);
@@ -176,6 +177,28 @@ private:
         
         Tokenizer tokenizer;
         tokenizer.tokenize("issue3.c", includePaths, skipIncludes, false, errout);
+
+        // Including header which is not needed
+        WarningIncludeHeader(tokenizer, false, false, errout);
+
+        ASSERT_EQUALS("", errout.str());
+    }
+    
+    void needed_const()
+    {
+        {
+            std::ofstream f1("needed_const.c");
+            f1 << "#include \"needed_const.h\"\n"
+               << "void foo() { char a[10]; a[DEFAULT_LANGUAGE] = 0; }\n";
+
+            std::ofstream f2("needed_const.h");
+            f2 << "const int DEFAULT_LANGUAGE = 0;\n";
+        }
+
+        std::ostringstream errout;
+
+        Tokenizer tokenizer;
+        tokenizer.tokenize("needed_const.c", includePaths, skipIncludes, false, errout);
 
         // Including header which is not needed
         WarningIncludeHeader(tokenizer, false, false, errout);
