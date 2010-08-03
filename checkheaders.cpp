@@ -193,7 +193,7 @@ void WarningIncludeHeader(const Tokenizer &tokenizer, bool Progress, bool XmlOut
             if (Match(tok,"class %var% {") || Match(tok,"class %var% :") || Match(tok,"struct %var% {"))
                 classes[tok->FileIndex].insert(getstr(tok, 1));
 
-            else if (Match(tok, "namespace %var% {"))
+            else if (Match(tok, "namespace %var% {") || Match(tok, "extern %str% {"))
             {
                 tok = gettok(tok,2);
                 continue;
