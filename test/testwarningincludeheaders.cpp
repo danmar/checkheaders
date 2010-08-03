@@ -42,6 +42,7 @@ private:
         TEST_CASE(issue3);
         TEST_CASE(needed_define);
         TEST_CASE(needed_typedef);
+        TEST_CASE(needed_namespace);
         TEST_CASE(stdafx);
         TEST_CASE(standardheader1);
         TEST_CASE(standardheader2);
@@ -220,6 +221,31 @@ private:
 
         Tokenizer tokenizer;
         tokenizer.tokenize("needed_typedef.c", includePaths, skipIncludes, false, errout);
+
+        // Including header which is not needed
+        WarningIncludeHeader(tokenizer, false, false, errout);
+
+        ASSERT_EQUALS("", errout.str());
+    }
+
+    void needed_namespace()
+    {
+        {
+            std::ofstream f1("needed_namespace.c");
+            f1 << "#include \"needed_namespace.h\"\n"
+               << "void foo()\n"
+               << "{ foo::bar foobar; }";
+
+            std::ofstream f2("needed_namespace.h");
+            f2 << "namespace foo {\n"
+               << "    class bar { };\n"
+               << "}\n";
+        }
+
+        std::ostringstream errout;
+
+        Tokenizer tokenizer;
+        tokenizer.tokenize("needed_namespace.c", includePaths, skipIncludes, false, errout);
 
         // Including header which is not needed
         WarningIncludeHeader(tokenizer, false, false, errout);
