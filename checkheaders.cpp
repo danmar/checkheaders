@@ -118,11 +118,57 @@ void WarningIncludeHeader(const Tokenizer &tokenizer, bool Progress, bool XmlOut
     // * It contains some needed variable
     // * It contains some needed enum
 
-    // class names..
+
+    // Extract all includes..
+    std::vector< std::list<IncludeInfo> > includes(tokenizer.ShortFileNames.size(), std::list< IncludeInfo >());
+    for (const Token *tok = tokenizer.tokens; tok; tok = tok->next)
+    {
+        if (strncmp(tok->str, "#include", 8) == 0)
+        {
+            // Get index of included file:
+            unsigned int hfile;
+            const char *includefile = tok->next->str;
+            for (hfile = 0; hfile < tokenizer.ShortFileNames.size(); ++hfile)
+            {
+                if ( SameFileName( tokenizer.ShortFileNames[hfile].c_str(), includefile ) )
+                    break;
+            }
+            includes[tok->FileIndex].push_back(IncludeInfo(tok, hfile));
+        }
+    }
+
+    // System headers are checked differently..
+    std::vector<unsigned int> SystemHeaders(tokenizer.ShortFileNames.size(), 0);
+    for (const Token *tok = tokenizer.tokens; tok; tok = tok->next)
+    {
+        if (strcmp(tok->str, "#include<>") == 0 ||
+            (SystemHeaders[tok->FileIndex] && strcmp(tok->str, "#include") == 0))
+        {
+            // Get index of included file:
+            const char *includefile = tok->next->str;
+            for (unsigned int hfile = 0; hfile < tokenizer.ShortFileNames.size(); ++hfile)
+            {
+                if ( SameFileName( tokenizer.ShortFileNames[hfile].c_str(), includefile ) )
+                {
+                    SystemHeaders[hfile] = 1;
+                    break;
+                }
+            }
+        }
+    }
+
+
+    // extracted class names..
     std::vector< std::set<std::string> > classes(tokenizer.ShortFileNames.size(), std::set<std::string>());
 
-    // symbol names..
+    // extracted symbol names..
     std::vector< std::set<std::string> > names(tokenizer.ShortFileNames.size(), std::set<std::string>());
+
+    // needed symbol/type names
+    std::vector< std::set<std::string> > needed(tokenizer.ShortFileNames.size(), std::set<std::string>() );
+
+    // symbol/type names that need at least a forward declaration
+    std::vector< std::set<std::string> > needDeclaration(tokenizer.ShortFileNames.size(), std::set<std::string>() );
 
     // Extract symbols from the files..
     {
@@ -154,7 +200,23 @@ void WarningIncludeHeader(const Tokenizer &tokenizer, bool Progress, bool XmlOut
             }
 
             else if (Match(tok, "struct %var% ;") || Match(tok, "class %var% ;"))
+            {
+                // This type name is probably needed in any files that includes this file
+                const std::string name(tok->next->str);
+                for (unsigned int i = 0; i < tokenizer.ShortFileNames.size(); ++i)
+                {
+                    if (i == tok->FileIndex)
+                        continue;
+                    for (std::list<IncludeInfo>::const_iterator it = includes[i].begin(); it != includes[i].end(); ++it)
+                    {
+                        if (it->hfile == tok->FileIndex)
+                        {
+                            needed[it->tok->FileIndex].insert(name);
+                        }
+                    }
+                }
                 continue;
+            }
 
             // Variable declaration..
             // --------------------------------------
@@ -212,30 +274,7 @@ void WarningIncludeHeader(const Tokenizer &tokenizer, bool Progress, bool XmlOut
         }
     }
 
-
-    // System headers are checked differently..
-    std::vector<unsigned int> SystemHeaders(tokenizer.ShortFileNames.size(), 0);
-    for (const Token *tok = tokenizer.tokens; tok; tok = tok->next)
-    {
-        if (strcmp(tok->str, "#include<>") == 0 ||
-            (SystemHeaders[tok->FileIndex] && strcmp(tok->str, "#include") == 0))
-        {
-            // Get index of included file:
-            const char *includefile = tok->next->str;
-            for (unsigned int hfile = 0; hfile < tokenizer.ShortFileNames.size(); ++hfile)
-            {
-                if ( SameFileName( tokenizer.ShortFileNames[hfile].c_str(), includefile ) )
-                {
-                    SystemHeaders[hfile] = 1;
-                    break;
-                }
-            }
-        }
-    }
-
     // Get all needed symbols..
-    std::vector< std::set<std::string> > needed(tokenizer.ShortFileNames.size(), std::set<std::string>() );
-    std::vector< std::set<std::string> > needDeclaration(tokenizer.ShortFileNames.size(), std::set<std::string>() );
     {
         // Which files contain implementation?
         std::vector<unsigned int> HasImplementation(tokenizer.ShortFileNames.size(), 0);
@@ -327,24 +366,6 @@ void WarningIncludeHeader(const Tokenizer &tokenizer, bool Progress, bool XmlOut
         {
             needed[i].erase(keywords[k]);
             needDeclaration[i].erase(keywords[k]);
-        }
-    }
-
-    // Extract all includes..
-    std::vector< std::list<IncludeInfo> > includes(tokenizer.ShortFileNames.size(), std::list< IncludeInfo >());
-    for (const Token *tok = tokenizer.tokens; tok; tok = tok->next)
-    {
-        if (strncmp(tok->str, "#include", 8) == 0)
-        {
-            // Get index of included file:
-            unsigned int hfile;
-            const char *includefile = tok->next->str;
-            for (hfile = 0; hfile < tokenizer.ShortFileNames.size(); ++hfile)
-            {
-                if ( SameFileName( tokenizer.ShortFileNames[hfile].c_str(), includefile ) )
-                    break;
-            }
-            includes[tok->FileIndex].push_back(IncludeInfo(tok, hfile));
         }
     }
 

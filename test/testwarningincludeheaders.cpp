@@ -40,6 +40,7 @@ private:
         TEST_CASE(implementation1);
         TEST_CASE(implementation2);
         TEST_CASE(issue3);
+        TEST_CASE(needed_class);
         TEST_CASE(needed_const);
         TEST_CASE(needed_define);
         TEST_CASE(needed_typedef);
@@ -184,6 +185,38 @@ private:
         ASSERT_EQUALS("", errout.str());
     }
     
+    void needed_class()
+    {
+        {
+            std::ofstream f1("needed_class.cpp");
+            f1 << "#include \"needed_class.h\"\n"
+               << "#include \"needed_class-ab.h\"\n"
+               << "void Foo::f() { ab->do_something(); }\n";
+
+            std::ofstream f2("needed_class.h");
+            f2 << "struct AB;\n"
+               << "struct Foo {\n"
+               << "    AB *ab;\n"
+               << "    void f();\n"
+               << "};";
+
+            std::ofstream f3("needed_class-ab.h");
+            f3 << "struct AB {\n"
+               << "    void do_something() { }\n"
+               << "};";
+        }
+
+        std::ostringstream errout;
+
+        Tokenizer tokenizer;
+        tokenizer.tokenize("needed_class.cpp", includePaths, skipIncludes, false, errout);
+
+        // Including header which is not needed
+        WarningIncludeHeader(tokenizer, false, false, errout);
+
+        ASSERT_EQUALS("", errout.str());
+    }
+
     void needed_const()
     {
         {
