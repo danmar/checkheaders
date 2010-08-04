@@ -64,11 +64,13 @@ static std::string matchSymbols(const std::set<std::string> &needed, const std::
 {
     for (std::set<std::string>::const_iterator sym = needed.begin(); sym != needed.end(); ++sym)
     {
-        if (classes.find(*sym) != classes.end() ||
-            names.find(*sym) != names.end())
-        {
+        if (classes.find(*sym) != classes.end())
             return *sym;
-        }
+    }
+    for (std::set<std::string>::const_iterator sym = needed.begin(); sym != needed.end(); ++sym)
+    {
+        if (names.find(*sym) != names.end())
+            return *sym;
     }
     return "";
 }
