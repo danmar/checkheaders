@@ -75,3 +75,21 @@ progress: file main.c checking include stdlib.h
 }}}
 
 The `[main.c:2] (style): The included header 'stdlib.h' is not needed` is written to stderr.
+
+
+= System headers =
+
+It is not a bad idea to use the normal system headers. But it can generate wrong results.
+ * The standard headers are not always identical on different targets. This sometimes cause wrong reports that headers are not needed. Removing those headers would be ok on the current target but not necessarily on all other targets.
+ * The standard headers contain many symbols that cause wrong matches. Checkheaders will think that the headers are needed. You might for example see {{{progress: needed symbol 'string'}}} when the sstream header is checked.
+
+One possible solution is that you create your own system headers. By changing the given {{{-I}}} commands you can switch between the normal system headers and your own.
+
+An example {{{list}}} header file:
+{{{
+#define list
+}}}
+
+With that example file the {{{#include <list>}}} will only be necessary if the list class is used.
+
+You can also define symbols in your system headers that are not available in the normal system headers. To get rid of false errors that system headers are not needed.
