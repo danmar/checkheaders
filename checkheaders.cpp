@@ -178,7 +178,10 @@ void WarningIncludeHeader(const Tokenizer &tokenizer, bool Progress, bool XmlOut
             // Don't extract symbols in the main source file
             if (tok->FileIndex == 0)
                 continue;
-            
+
+            if (tok->next && tok->FileIndex != tok->next->FileIndex)
+                indentlevel = 0;
+
             if (tok->str[0] == '{')
                 indentlevel++;
 
@@ -288,8 +291,11 @@ void WarningIncludeHeader(const Tokenizer &tokenizer, bool Progress, bool XmlOut
                 continue;
             }
 
+            if (tok1->next && tok1->FileIndex != tok1->next->FileIndex)
+                indentlevel = 0;
+
             // implementation begins..
-            if (indentlevel == 0 && Match(tok1, ") {"))
+            else if (indentlevel == 0 && Match(tok1, ") {"))
             {
                 // Go to the "{"
                 while (tok1->str[0] != '{')
