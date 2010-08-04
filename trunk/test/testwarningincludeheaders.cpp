@@ -39,6 +39,7 @@ private:
         TEST_CASE(declaration2);
         TEST_CASE(implementation1);
         TEST_CASE(implementation2);
+        TEST_CASE(indentlevel);
         TEST_CASE(issue3);
         TEST_CASE(needed_class);
         TEST_CASE(needed_const);
@@ -160,6 +161,41 @@ private:
         WarningIncludeHeader(tokenizer, false, false, errout);
 
         ASSERT_EQUALS("[implementation2.c:1] (style): The included header 'implementation2.h' is not needed\n", errout.str());
+    }
+
+    void indentlevel()
+    {
+        // the indentlevel will be increased too much in the included header.
+        {
+            std::ofstream f1("indentlevel.c");
+            f1 << "#include \"indentlevel.h\"\n"
+               << "char a[NUM];\n";
+
+            std::ofstream f2("indentlevel.h");
+            f2 << "#include <indentlevel-list.h>\n"
+               << "const int NUM = 10;\n";
+
+            std::ofstream f3("indentlevel-list.h");
+            f3 << "void foo()\n"
+               << "{\n"
+               << "#ifdef AAA\n"
+               << "    if (aaa) {\n"
+               << "#else\n"
+               << "    if (bbb) {\n"
+               << "#endif\n"
+               << "    }\n"
+               << "}\n";
+        }
+        
+        std::ostringstream errout;
+
+        Tokenizer tokenizer;
+        tokenizer.tokenize("indentlevel.c", includePaths, skipIncludes, false, errout);
+
+        // Including header which is not needed
+        WarningIncludeHeader(tokenizer, false, false, errout);
+
+        ASSERT_EQUALS("[indentlevel.h:1] (style): The included header 'indentlevel-list.h' is not needed\n", errout.str());
     }
 
     void issue3()
