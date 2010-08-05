@@ -14,9 +14,11 @@ Compiling
   There are no dependencies.
 
   The Makefile is written for g++.
+   * To compile in Linux a simple "make" will work.
+   * To compile in DOS/Windows with DJGPP, use "make CXX=gxx"
+   * To compile in Windows with MINGW, use "make LDFLAGS=-lshlwapi"
 
-  The "checkheaders.vcproj" is a Visual Studio project
-  created with Visual Studio 2008 Express.
+  There are also Visual Studio project/solution files.
 
 Usage
 
