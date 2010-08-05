@@ -164,23 +164,23 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath=".\checkheaders.cpp"
+				RelativePath=".\src\checkheaders.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\commoncheck.cpp"
+				RelativePath=".\src\commoncheck.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\filelister.cpp"
+				RelativePath=".\src\filelister.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\main.cpp"
+				RelativePath=".\src\main.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\tokenize.cpp"
+				RelativePath=".\src\tokenize.cpp"
 				>
 			</File>
 		</Filter>
@@ -190,19 +190,19 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
-				RelativePath=".\checkheaders.h"
+				RelativePath=".\src\checkheaders.h"
 				>
 			</File>
 			<File
-				RelativePath=".\commoncheck.h"
+				RelativePath=".\src\commoncheck.h"
 				>
 			</File>
 			<File
-				RelativePath=".\filelister.h"
+				RelativePath=".\src\filelister.h"
 				>
 			</File>
 			<File
-				RelativePath=".\tokenize.h"
+				RelativePath=".\src\tokenize.h"
 				>
 			</File>
 		</Filter>
