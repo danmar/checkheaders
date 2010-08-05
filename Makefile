@@ -3,13 +3,14 @@ OBJS=$(SRCS:%.cpp=%.o)
 HDRS=$(SRCS:%.cpp=%.h)
 CXX=g++
 CXXFLAGS=-g
+LDFLAGS=
 APPNAME=checkheaders
 
 %.o:	%.cpp	$(HDRS)
 	$(CXX) -Wall -pedantic $(CXXFLAGS) -I. -o $@ -c $<
 
 all:	${OBJS}	src/main.o
-	$(CXX) -Wall $(CXXFLAGS) -o ${APPNAME} $^
+	$(CXX) -Wall $(CXXFLAGS) -o ${APPNAME} $^ ${LDFLAGS}
 
 testrunner:	all
 	$(CXX) -I src -Wall $(CXXFLAGS) -o test/testrunner ${OBJS} test/*.cpp
