@@ -21,6 +21,8 @@
 #include "commoncheck.h"    // <- IsName
 //---------------------------------------------------------------------------
 
+#include <iterator>   // back_inserter
+
 #include <locale>
 #include <fstream>
 
