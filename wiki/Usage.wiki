@@ -87,7 +87,7 @@ One possible solution is that you create your own system headers. By changing th
 
 An example {{{list}}} header file:
 {{{
-#define list
+class list { };
 }}}
 
 With that example file the {{{#include <list>}}} will only be necessary if the list class is used.
