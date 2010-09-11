@@ -45,6 +45,7 @@ private:
         TEST_CASE(needed_const);
         TEST_CASE(needed_define1);
         TEST_CASE(needed_define2);
+        TEST_CASE(needed_include);
         TEST_CASE(needed_typedef);
         TEST_CASE(needed_namespace);
         TEST_CASE(stdafx);
@@ -320,6 +321,34 @@ private:
         WarningIncludeHeader(tokenizer, false, false, errout);
 
         ASSERT_EQUALS("", errout.str());
+    }
+
+    void needed_include()
+    {
+        {
+            std::ofstream f1("needed_include.c");
+            f1 << "#include \"needed_include1.h\"\n"
+               << "void f() { b(); }\n";
+
+            std::ofstream f2("needed_include1.h");
+            f2 << "#include \"needed_include2.h\"\n";
+
+            std::ofstream f3("needed_include2.h");
+            f3 << "void b();\n";
+        }
+
+        std::ostringstream errout;
+
+        Tokenizer tokenizer;
+        tokenizer.tokenize("needed_include.c", includePaths, skipIncludes, false, errout);
+
+        // Including header which is not needed
+        WarningIncludeHeader(tokenizer, false, false, errout);
+
+        ASSERT_EQUALS("[needed_include.c:1] (style): Inconclusive results: The included header 'needed_include1.h' is not needed. "
+                      "However it is needed indirectly because it includes 'needed_include2.h'. "
+                      "If it is included by intention use '--skip needed_include1.h' to remove false positives.\n"
+                      "[needed_include1.h:1] (style): The included header 'needed_include2.h' is not needed\n", errout.str());
     }
 
     void needed_typedef()
