@@ -384,6 +384,7 @@ void WarningIncludeHeader(const Tokenizer &tokenizer, bool Progress, bool XmlOut
         if (SystemHeaders[fileIndex])
             continue;
 
+        // Check if each include is needed..
         for (std::list<IncludeInfo>::const_iterator include = includes[fileIndex].begin(); include != includes[fileIndex].end(); ++include)
         {
             // include not found
@@ -415,6 +416,41 @@ void WarningIncludeHeader(const Tokenizer &tokenizer, bool Progress, bool XmlOut
                     break;
                 }
             }
+                        
+            // Check if local header is needed indirectly..
+            if (!Needed && !SystemHeaders[include->hfile])
+            {
+                std::string needed_header;
+            
+                getincludes(includes, include->hfile, AllIncludes, notfound);
+                for (std::set<unsigned int>::const_iterator it = AllIncludes.begin(); it != AllIncludes.end(); ++it)
+                {
+                    const std::string sym = matchSymbols(needed[fileIndex], classes[*it], names[*it]);
+                    if (!sym.empty())
+                    {
+                        needed_header = tokenizer.ShortFileNames[*it];
+
+                        if (Progress)
+                            std::cout << "progress: needed symbol '" << sym << "'" << std::endl;
+                        Needed = true;
+                        break;
+                    }
+                }
+                
+                if (Needed)
+                {
+                    std::ostringstream errmsg;
+                    errmsg << "Inconclusive results: The included header '" 
+                           << include->tok->next->str 
+                           << "' is not needed. However it is needed indirectly because it includes '" 
+                           << needed_header
+                           << "'. If it is included by intention use '--skip "
+                           << include->tok->next->str 
+                           << "' to remove false positives.";
+                    ReportErr(tokenizer, XmlOutput, include->tok, "HeaderNotNeeded", errmsg.str(), errout);
+                }
+            }
+
             if (!Needed)
             {
                 if (!notfound)
