@@ -30,9 +30,10 @@
 struct Token;
 
 // Are two filenames the same? Case insensitive on windows
-bool SameFileName( const char fname1[], const char fname2[] );
+bool SameFileName(const char fname1[], const char fname2[]);
 
-void ReportErr(const Tokenizer &tokenizer, bool XmlOutput, const Token *tok, const std::string &id, const std::string &errmsg, std::ostream &errout);
+void ReportErr(OutputFormat of, const std::string &file, const int line, const std::string &id, const std::string &errmsg, std::ostream &errout);
+void ReportErr(const Tokenizer &tokenizer, OutputFormat of, const Token *tok, const std::string &id, const std::string &errmsg, std::ostream &errout);
 
 bool IsName(const char str[]);
 bool IsNumber(const char str[]);

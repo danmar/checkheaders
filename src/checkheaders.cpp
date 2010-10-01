@@ -34,7 +34,7 @@
 // HEADERS - No implementation in a header
 //---------------------------------------------------------------------------
 
-void WarningHeaderWithImplementation(const Tokenizer &tokenizer, bool XmlOutput, std::ostream &errout)
+void WarningHeaderWithImplementation(const Tokenizer &tokenizer, OutputFormat outputFormat, std::ostream &errout)
 {
     for (const Token *tok = tokenizer.tokens; tok; tok = tok->next)
     {
@@ -46,7 +46,7 @@ void WarningHeaderWithImplementation(const Tokenizer &tokenizer, bool XmlOutput,
         {
             std::ostringstream ostr;
             ostr << "Found implementation in header";
-            ReportErr(tokenizer, XmlOutput, tok, "HeaderWithImplementation", ostr.str(), errout);
+            ReportErr(tokenizer, outputFormat, tok, "HeaderWithImplementation", ostr.str(), errout);
         }
     }
 }
@@ -89,7 +89,7 @@ public:
         tok = info.tok;
         hfile = info.hfile;
     }
-    
+
     const Token *tok;
     unsigned int hfile;
 };
@@ -111,7 +111,7 @@ static void getincludes(const std::vector< std::list<IncludeInfo> > &includes, c
     }
 }
 
-void WarningIncludeHeader(const Tokenizer &tokenizer, bool Progress, bool XmlOutput, std::ostream &errout)
+void WarningIncludeHeader(const Tokenizer &tokenizer, bool Progress, OutputFormat outputFormat, std::ostream &errout)
 {
     // A header is needed if:
     // * It contains some needed class declaration
@@ -132,7 +132,7 @@ void WarningIncludeHeader(const Tokenizer &tokenizer, bool Progress, bool XmlOut
             const char *includefile = tok->next->str;
             for (hfile = 0; hfile < tokenizer.ShortFileNames.size(); ++hfile)
             {
-                if ( SameFileName( tokenizer.ShortFileNames[hfile].c_str(), includefile ) )
+                if (SameFileName(tokenizer.ShortFileNames[hfile].c_str(), includefile))
                     break;
             }
             includes[tok->FileIndex].push_back(IncludeInfo(tok, hfile));
@@ -150,7 +150,7 @@ void WarningIncludeHeader(const Tokenizer &tokenizer, bool Progress, bool XmlOut
             const char *includefile = tok->next->str;
             for (unsigned int hfile = 0; hfile < tokenizer.ShortFileNames.size(); ++hfile)
             {
-                if ( SameFileName( tokenizer.ShortFileNames[hfile].c_str(), includefile ) )
+                if (SameFileName(tokenizer.ShortFileNames[hfile].c_str(), includefile))
                 {
                     SystemHeaders[hfile] = 1;
                     break;
@@ -167,10 +167,10 @@ void WarningIncludeHeader(const Tokenizer &tokenizer, bool Progress, bool XmlOut
     std::vector< std::set<std::string> > names(tokenizer.ShortFileNames.size(), std::set<std::string>());
 
     // needed symbol/type names
-    std::vector< std::set<std::string> > needed(tokenizer.ShortFileNames.size(), std::set<std::string>() );
+    std::vector< std::set<std::string> > needed(tokenizer.ShortFileNames.size(), std::set<std::string>());
 
     // symbol/type names that need at least a forward declaration
-    std::vector< std::set<std::string> > needDeclaration(tokenizer.ShortFileNames.size(), std::set<std::string>() );
+    std::vector< std::set<std::string> > needDeclaration(tokenizer.ShortFileNames.size(), std::set<std::string>());
 
     // Extract symbols from the files..
     {
@@ -238,13 +238,13 @@ void WarningIncludeHeader(const Tokenizer &tokenizer, bool Progress, bool XmlOut
                 tok = tok->next;
                 while (tok->next && tok->str[0]!=';')
                 {
-                    if ( IsName(tok->str) )
+                    if (IsName(tok->str))
                         names[tok->FileIndex].insert(tok->str);
                     tok = tok->next;
                 }
             }
-                
-            // function..  
+
+            // function..
             // --------------------------------------
             else if (Match(tok,"%type% %var% (") ||
                      Match(tok,"%type% * %var% ("))
@@ -265,7 +265,7 @@ void WarningIncludeHeader(const Tokenizer &tokenizer, bool Progress, bool XmlOut
                     continue;
                 while (tok->str[0] != ';' && tok->next)
                 {
-                    if ( Match(tok, "%var% ;") )
+                    if (Match(tok, "%var% ;"))
                         names[tok->FileIndex].insert(tok->str);
 
                     tok = tok->next;
@@ -283,7 +283,7 @@ void WarningIncludeHeader(const Tokenizer &tokenizer, bool Progress, bool XmlOut
     {
         // Which files contain implementation?
         std::vector<unsigned int> HasImplementation(tokenizer.ShortFileNames.size(), 0);
-    
+
         int indentlevel = 0;
         for (const Token *tok1 = tokenizer.tokens; tok1; tok1 = tok1->next)
         {
@@ -304,7 +304,7 @@ void WarningIncludeHeader(const Tokenizer &tokenizer, bool Progress, bool XmlOut
                     tok1 = tok1->next;
                 indentlevel = 1;
                 HasImplementation[tok1->FileIndex] = 1;
-			}
+            }
             else if (indentlevel >= 1)
             {
                 if (tok1->str[0] == '{')
@@ -313,7 +313,7 @@ void WarningIncludeHeader(const Tokenizer &tokenizer, bool Progress, bool XmlOut
                     --indentlevel;
             }
 
-            if ( Match(tok1, ": %var% {") || Match(tok1, ": %type% %var% {") )
+            if (Match(tok1, ": %var% {") || Match(tok1, ": %type% %var% {"))
             {
                 const std::string classname(getstr(tok1, (strcmp(getstr(tok1,2),"{")) ? 2 : 1));
                 needed[tok1->FileIndex].insert(classname);
@@ -334,7 +334,7 @@ void WarningIncludeHeader(const Tokenizer &tokenizer, bool Progress, bool XmlOut
                 continue;
             }
 
-            if ( IsName(tok1->str) && !Match(tok1->next, "{") )
+            if (IsName(tok1->str) && !Match(tok1->next, "{"))
                 needed[tok1->FileIndex].insert(tok1->str);
         }
 
@@ -369,7 +369,7 @@ void WarningIncludeHeader(const Tokenizer &tokenizer, bool Progress, bool XmlOut
                                    "while",
                                    NULL
                                  };
-                                 
+
         for (unsigned int k = 0; keywords[k]; ++k)
         {
             needed[i].erase(keywords[k]);
@@ -416,12 +416,12 @@ void WarningIncludeHeader(const Tokenizer &tokenizer, bool Progress, bool XmlOut
                     break;
                 }
             }
-                        
+
             // Check if local header is needed indirectly..
             if (!Needed && !SystemHeaders[include->hfile])
             {
                 std::string needed_header;
-            
+
                 getincludes(includes, include->hfile, AllIncludes, notfound);
                 for (std::set<unsigned int>::const_iterator it = AllIncludes.begin(); it != AllIncludes.end(); ++it)
                 {
@@ -436,18 +436,18 @@ void WarningIncludeHeader(const Tokenizer &tokenizer, bool Progress, bool XmlOut
                         break;
                     }
                 }
-                
+
                 if (Needed)
                 {
                     std::ostringstream errmsg;
-                    errmsg << "Inconclusive results: The included header '" 
-                           << include->tok->next->str 
-                           << "' is not needed. However it is needed indirectly because it includes '" 
+                    errmsg << "Inconclusive results: The included header '"
+                           << include->tok->next->str
+                           << "' is not needed. However it is needed indirectly because it includes '"
                            << needed_header
                            << "'. If it is included by intention use '--skip "
-                           << include->tok->next->str 
+                           << include->tok->next->str
                            << "' to remove false positives.";
-                    ReportErr(tokenizer, XmlOutput, include->tok, "HeaderNotNeeded", errmsg.str(), errout);
+                    ReportErr(tokenizer, outputFormat, include->tok, "HeaderNotNeeded", errmsg.str(), errout);
                 }
             }
 
@@ -472,7 +472,7 @@ void WarningIncludeHeader(const Tokenizer &tokenizer, bool Progress, bool XmlOut
                     if (NeedDeclaration)
                         errmsg << " (but forward declaration is needed)";
 
-                    ReportErr(tokenizer, XmlOutput, include->tok, "HeaderNotNeeded", errmsg.str(), errout);
+                    ReportErr(tokenizer, outputFormat, include->tok, "HeaderNotNeeded", errmsg.str(), errout);
                 }
                 else if (Progress)
                     std::cout << "progress: bail out (header not found)" << std::endl;

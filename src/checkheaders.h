@@ -25,9 +25,9 @@
 #include "tokenize.h"
 #include <ostream>
 
-void WarningHeaderWithImplementation(const Tokenizer &tokenizer, bool XmlOutput, std::ostream &errout);
+void WarningHeaderWithImplementation(const Tokenizer &tokenizer, OutputFormat outputFormat, std::ostream &errout);
 
-void WarningIncludeHeader(const Tokenizer &tokenizer, bool Progress, bool XmlOutput, std::ostream &errout);
+void WarningIncludeHeader(const Tokenizer &tokenizer, bool Progress, OutputFormat outputFormat, std::ostream &errout);
 
 
 //---------------------------------------------------------------------------
