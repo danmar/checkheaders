@@ -60,12 +60,6 @@ int main(int argc, char* argv[])
             Debug = true;
         }
 
-        else if (strcmp(argv[i], "-I") == 0 && (i + 1) < argc)
-        {
-            ++i;
-            includePaths.push_back(argv[i]);
-        }
-
         else if (strcmp(argv[i], "--skip") == 0 && (i + 1) < argc)
         {
             ++i;
@@ -75,6 +69,27 @@ int main(int argc, char* argv[])
         else if (strcmp(argv[i], "--xml") == 0)
         {
             XmlOutput = true;
+        }
+
+        else if (strchr("-/", *argv[i]) && *(argv[i]+1) == 'I')
+        {
+            // -I <dir
+            if (*(argv[i]+2) == 0)
+            {
+                if ((i + 1) >= argc)
+                {
+                    std::cerr << "checkheaders: failed to parse '" << argv[i] << "'" << std::endl;
+                    return 1;
+                }
+                ++i;
+                includePaths.push_back(argv[i]);
+            }
+            
+            // -I<dir>
+            else
+            {
+                includePaths.push_back(argv[i] + 2);
+            }
         }
 
         else if (strncmp(argv[i], "-", 1) == 0)
