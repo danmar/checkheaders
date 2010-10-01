@@ -69,7 +69,7 @@ private:
         }
 
         std::ostringstream errout;
-        
+
         Tokenizer tokenizer;
         tokenizer.tokenize("declaration1.c", includePaths, skipIncludes, false, errout);
 
@@ -99,7 +99,7 @@ private:
         }
 
         std::ostringstream errout;
-        
+
         Tokenizer tokenizer;
         tokenizer.tokenize("declaration2.c", includePaths, skipIncludes, false, errout);
 
@@ -127,7 +127,7 @@ private:
         }
 
         std::ostringstream errout;
-        
+
         Tokenizer tokenizer;
         tokenizer.tokenize("implementation1.c", includePaths, skipIncludes, false, errout);
 
@@ -136,7 +136,7 @@ private:
 
         ASSERT_EQUALS("", errout.str());
     }
-    
+
     void implementation2()
     {
         // header not needed
@@ -152,7 +152,7 @@ private:
                << "{\n"
                << "}\n";
         }
-        
+
         std::ostringstream errout;
 
         Tokenizer tokenizer;
@@ -187,7 +187,7 @@ private:
                << "    }\n"
                << "}\n";
         }
-        
+
         std::ostringstream errout;
 
         Tokenizer tokenizer;
@@ -213,7 +213,7 @@ private:
         }
 
         std::ostringstream errout;
-        
+
         Tokenizer tokenizer;
         tokenizer.tokenize("issue3.c", includePaths, skipIncludes, false, errout);
 
@@ -222,7 +222,7 @@ private:
 
         ASSERT_EQUALS("", errout.str());
     }
-    
+
     void needed_class()
     {
         {
@@ -419,7 +419,7 @@ private:
 
         ASSERT_EQUALS("", errout.str());
     }
-    
+
     void standardheader1()
     {
         {
@@ -466,7 +466,7 @@ private:
 
         ASSERT_EQUALS("", errout.str());
     }
-    
+
     void test1()
     {
         {

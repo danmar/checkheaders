@@ -39,9 +39,9 @@
 
 
 static bool Debug;      /// --debug
-static bool XmlOutput;  /// --xml
+static OutputFormat outputFormat;
 
-static void CppCheck(const char FileName[], const std::vector<std::string> &includePaths, const std::set<std::string> &skipIncludes);
+static void CheckFile(const char FileName[], const std::vector<std::string> &includePaths, const std::set<std::string> &skipIncludes);
 
 //---------------------------------------------------------------------------
 // Main function of checkheaders
@@ -52,6 +52,8 @@ int main(int argc, char* argv[])
     std::vector<std::string> filenames;
     std::vector<std::string> includePaths;
     std::set<std::string> skipIncludes;
+
+    outputFormat = OUTPUT_FORMAT_NORMAL;
 
     for (int i = 1; i < argc; i++)
     {
@@ -65,10 +67,15 @@ int main(int argc, char* argv[])
             ++i;
             skipIncludes.insert(argv[i]);
         }
-        
+
         else if (strcmp(argv[i], "--xml") == 0)
         {
-            XmlOutput = true;
+            outputFormat = OUTPUT_FORMAT_XML;
+        }
+
+        else if (strcmp(argv[i], "--vs") == 0)
+        {
+            outputFormat = OUTPUT_FORMAT_VS;
         }
 
         else if (strchr("-/", *argv[i]) && *(argv[i]+1) == 'I')
@@ -84,7 +91,7 @@ int main(int argc, char* argv[])
                 ++i;
                 includePaths.push_back(argv[i]);
             }
-            
+
             // -I<dir>
             else
             {
@@ -101,7 +108,7 @@ int main(int argc, char* argv[])
         else
         {
             unsigned int sz = filenames.size();
-            FileLister::recursiveAddFiles(filenames, argv[i], true);            
+            FileLister::recursiveAddFiles(filenames, argv[i], true);
             if (sz == filenames.size())
             {
                 std::cerr << "checkheaders: file/path not found: '" << argv[i] << "'" << std::endl;
@@ -122,6 +129,7 @@ int main(int argc, char* argv[])
                   << "                   you see 'Header not found' messages.\n"
                   << "    --skip <file>  Skip header. Matching #include directives in\n"
                   << "                   the source code will be skipped.\n"
+                  << "    --vs           Output report in visual studio format\n"
                   << "    --xml          Output report in xml format\n"
                   << "\n"
                   << "Example usage:\n"
@@ -134,9 +142,9 @@ int main(int argc, char* argv[])
         return 0;
     }
 
-    std::sort( filenames.begin(), filenames.end() );
+    std::sort(filenames.begin(), filenames.end());
 
-    if (XmlOutput)
+    if (outputFormat == OUTPUT_FORMAT_XML)
     {
         std::cerr << "<?xml version=\"1.0\"?>\n"
                   << "<results>\n";
@@ -144,10 +152,10 @@ int main(int argc, char* argv[])
 
     for (unsigned int c = 0; c < filenames.size(); c++)
     {
-        CppCheck(filenames[c].c_str(), includePaths, skipIncludes);
+        CheckFile(filenames[c].c_str(), includePaths, skipIncludes);
     }
 
-    if (XmlOutput)
+    if (outputFormat == OUTPUT_FORMAT_XML)
         std::cerr << "</results>\n";
 
     return 0;
@@ -157,13 +165,13 @@ int main(int argc, char* argv[])
 // CppCheck - A function that checks a specified file
 //---------------------------------------------------------------------------
 
-static void CppCheck(const char FileName[], const std::vector<std::string> &includePaths, const std::set<std::string> &skipIncludes)
+static void CheckFile(const char FileName[], const std::vector<std::string> &includePaths, const std::set<std::string> &skipIncludes)
 {
     std::cout << "Checking " << FileName << "...\n";
 
     // Tokenize the file
     Tokenizer tokenizer;
-    tokenizer.tokenize(FileName, includePaths, skipIncludes, XmlOutput, std::cerr);
+    tokenizer.tokenize(FileName, includePaths, skipIncludes, outputFormat, std::cerr);
 
     // debug output..
     if (Debug)
@@ -175,7 +183,7 @@ static void CppCheck(const char FileName[], const std::vector<std::string> &incl
     }
 
     // Including header which is not needed
-    WarningIncludeHeader(tokenizer, true, XmlOutput, std::cerr);
+    WarningIncludeHeader(tokenizer, true, outputFormat, std::cerr);
 }
 //---------------------------------------------------------------------------
 

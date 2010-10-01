@@ -34,47 +34,57 @@ extern bool XmlOutput;
 
 //---------------------------------------------------------------------------
 
-bool SameFileName( const char fname1[], const char fname2[] )
+bool SameFileName(const char fname1[], const char fname2[])
 {
 #ifdef __linux__
-    return bool( strcmp(fname1, fname2) == 0 );
+    return bool(strcmp(fname1, fname2) == 0);
 #endif
 #ifdef __GNUC__
-    return bool( strcasecmp(fname1, fname2) == 0 );
+    return bool(strcasecmp(fname1, fname2) == 0);
 #endif
 #ifdef __BORLANDC__
-    return bool( stricmp(fname1, fname2) == 0 );
+    return bool(stricmp(fname1, fname2) == 0);
 #endif
 #ifdef _MSC_VER
-    return bool( _stricmp(fname1, fname2) == 0 );
+    return bool(_stricmp(fname1, fname2) == 0);
 #endif
 }
 //---------------------------------------------------------------------------
 
-std::list<std::string> ErrorList;
+std::set<std::string> ErrorList;
 
-void ReportErr(const Tokenizer &tokenizer, bool XmlOutput, const Token *tok, const std::string &id, const std::string &errmsg, std::ostream &errout)
+void ReportErr(OutputFormat of, const std::string &file, const int line, const std::string &id, const std::string &errmsg, std::ostream &errout)
 {
     std::ostringstream ostr;
-    if (XmlOutput)
+    if (of == OUTPUT_FORMAT_XML)
     {
-        ostr << "<error file=\"" << tokenizer.FullFileNames[tok->FileIndex] << "\""
-             << " line=\"" << tok->linenr << "\""
+        ostr << "<error file=\"" << file << "\""
+             << " line=\"" << line << "\""
              << " severity=\"style\""
              << " id=\"" << id << "\""
              << " msg=\"" << errmsg << "\">";
     }
     else
     {
-        ostr << "[" << tokenizer.FullFileNames[tok->FileIndex] << ":" << tok->linenr << "]" << " (style): " << errmsg;
+        if (of == OUTPUT_FORMAT_NORMAL)
+            ostr << "[" << file << ":" << line << "]";
+        else if (of == OUTPUT_FORMAT_VS)
+            ostr << file << "(" << line << ")";
+        ostr << " (style): " << errmsg;
     }
 
     // Avoid duplicate error messages..
-    if (std::find(ErrorList.begin(), ErrorList.end(), ostr.str()) != ErrorList.end() )
-        return;
-    ErrorList.push_back(ostr.str());
+    if (ErrorList.find(ostr.str()) == ErrorList.end())
+    {
+        ErrorList.insert(ostr.str());
+        errout << ostr.str() << std::endl;
+    }
+}
 
-    errout << ostr.str() << std::endl;
+
+void ReportErr(const Tokenizer &tokenizer, OutputFormat of, const Token *tok, const std::string &id, const std::string &errmsg, std::ostream &errout)
+{
+    ReportErr(of, tokenizer.FullFileNames[tok->FileIndex], tok->linenr, id, errmsg, errout);
 }
 //---------------------------------------------------------------------------
 
@@ -111,7 +121,7 @@ bool Match(const Token *tok, const char pattern[])
     while (*p)
     {
         // Skip spaces in pattern..
-        while ( *p == ' ' )
+        while (*p == ' ')
             p++;
 
         // Extract token from pattern..
@@ -138,14 +148,14 @@ bool Match(const Token *tok, const char pattern[])
 
         else if (strcmp(str,"%num%")==0)
         {
-            if ( ! IsNumber(tok->str) )
+            if (! IsNumber(tok->str))
                 return false;
         }
 
 
         else if (strcmp(str,"%str%")==0)
         {
-            if ( tok->str[0] != '\"' )
+            if (tok->str[0] != '\"')
                 return false;
         }
 
@@ -153,7 +163,7 @@ bool Match(const Token *tok, const char pattern[])
         else if (str[0]=='[' && strchr(str, ']') && tok->str[1] == 0)
         {
             *strrchr(str, ']') = 0;
-            if ( strchr( str + 1, tok->str[0] ) == 0 )
+            if (strchr(str + 1, tok->str[0]) == 0)
                 return false;
         }
 

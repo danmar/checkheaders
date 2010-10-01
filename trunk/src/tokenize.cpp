@@ -57,15 +57,15 @@ void Tokenizer::addtoken(const char str[], const unsigned int lineno, const unsi
         return;
 
     // Replace hexadecimal value with decimal
-	std::ostringstream str2;
-	if (strncmp(str,"0x",2)==0)
+    std::ostringstream str2;
+    if (strncmp(str,"0x",2)==0)
     {
         str2 << strtoul(str+2, NULL, 16);
     }
-	else
-	{
-		str2 << str;
-	}
+    else
+    {
+        str2 << str;
+    }
 
     Token *newtoken  = new Token;
     std::memset(newtoken, 0, sizeof(Token));
@@ -103,8 +103,8 @@ static void combine_2tokens(Token *tok, const char str1[], const char str2[])
         return;
 
     free(tok->str);
-	std::string newstr(std::string(str1) + std::string(str2));
-	tok->str = strdup( newstr.c_str() );
+    std::string newstr(std::string(str1) + std::string(str2));
+    tok->str = strdup(newstr.c_str());
 
     // Delete next token
     Token *next = tok->next;
@@ -136,7 +136,7 @@ Tokenizer::~Tokenizer()
     }
 }
 
-bool Tokenizer::tokenize(const char FileName[], const std::vector<std::string> &includePaths, const std::set<std::string> &skipIncludes, const bool XmlOutput, std::ostream &errout)
+bool Tokenizer::tokenize(const char FileName[], const std::vector<std::string> &includePaths, const std::set<std::string> &skipIncludes, const OutputFormat outputFormat, std::ostream &errout)
 {
     // Skip stdafx.h..
     if (SameFileName(FileName, "stdafx.h"))
@@ -185,7 +185,7 @@ bool Tokenizer::tokenize(const char FileName[], const std::vector<std::string> &
     FullFileNames.push_back(filename);
 
     // Tokenize the file..
-    tokenizeCode(fin, FullFileNames.size() - 1, includePaths, skipIncludes, XmlOutput, errout);
+    tokenizeCode(fin, FullFileNames.size() - 1, includePaths, skipIncludes, outputFormat, errout);
 
     return true;
 }
@@ -199,7 +199,7 @@ bool Tokenizer::tokenize(const char FileName[], const std::vector<std::string> &
 // Tokenize - tokenizes input stream
 //---------------------------------------------------------------------------
 
-void Tokenizer::tokenizeCode(std::istream &code, const unsigned int FileIndex, const std::vector<std::string> &includePaths, const std::set<std::string> &skipIncludes, const bool XmlOutput, std::ostream &errout)
+void Tokenizer::tokenizeCode(std::istream &code, const unsigned int FileIndex, const std::vector<std::string> &includePaths, const std::set<std::string> &skipIncludes, const OutputFormat outputFormat, std::ostream &errout)
 {
     // Tokenize the file.
     unsigned int lineno = 1;
@@ -207,9 +207,9 @@ void Tokenizer::tokenizeCode(std::istream &code, const unsigned int FileIndex, c
     char *pToken = CurrentToken;
     for (char ch = (char)code.get(); !code.eof(); ch = (char)code.get())
     {
-		// Todo
-		if ( ch < 0 )
-			continue;
+        // Todo
+        if (ch < 0)
+            continue;
 
         // Preprocessor stuff?
         if (ch == '#' && !CurrentToken[0])
@@ -251,27 +251,13 @@ void Tokenizer::tokenizeCode(std::istream &code, const unsigned int FileIndex, c
                         addtoken(SystemHeader ? "#include<>" : "#include", lineno, FileIndex);
                         addtoken(line.c_str(), lineno, FileIndex);
 
-                        const bool found(tokenize(line.c_str(), incpaths, skipIncludes, XmlOutput, errout));
+                        const bool found(tokenize(line.c_str(), incpaths, skipIncludes, outputFormat, errout));
                         if (!found)
                         {
                             free(tokens_back->str);
                             tokens_back->str = strdup("not found");
-                    
                             const std::string errmsg("Header not found '" + line + "'. Use -I or --skip to fix this message.");
-
-                            if (XmlOutput)
-                            {
-                                errout << "<file=\"" << FullFileNames[FileIndex] << "\""
-                                       << " line=\"" << lineno << "\""
-                                       << " severity=\"style\""
-                                       << " id=\"HeaderNotFound\""
-                                       << " message=\"" << errmsg << "\""
-                                       << "/>" << std::endl;
-                            }
-                            else
-                            {
-                                errout << "[" << FullFileNames[FileIndex] << ":" << lineno << "] (style) " << errmsg << std::endl;
-                            }
+                            ReportErr(outputFormat, FullFileNames[FileIndex], lineno, "HeaderNotFound", errmsg, errout);
                         }
                     }
                 }
@@ -300,7 +286,7 @@ void Tokenizer::tokenizeCode(std::istream &code, const unsigned int FileIndex, c
         // Comments..
         if (ch == '/' && !code.eof())
         {
-            bool newstatement = bool( strchr(";{}", CurrentToken[0]) != NULL );
+            bool newstatement = bool(strchr(";{}", CurrentToken[0]) != NULL);
 
             // Add current token..
             addtoken(CurrentToken, lineno, FileIndex);
@@ -314,23 +300,23 @@ void Tokenizer::tokenizeCode(std::istream &code, const unsigned int FileIndex, c
             if (ch == '/')
             {
                 std::string comment;
-                getline( code, comment );   // Parse in the whole comment
+                getline(code, comment);     // Parse in the whole comment
 
                 // If the comment says something like "fred is deleted" then generate appropriate tokens for that
                 comment = comment + " ";
-                if ( newstatement && comment.find(" deleted ")!=std::string::npos )
+                if (newstatement && comment.find(" deleted ")!=std::string::npos)
                 {
                     // delete
-                    addtoken( "delete", lineno, FileIndex );
+                    addtoken("delete", lineno, FileIndex);
 
                     // fred
                     std::string::size_type pos1 = comment.find_first_not_of(" \t");
                     std::string::size_type pos2 = comment.find(" ", pos1);
-                    std::string firstWord = comment.substr( pos1, pos2-pos1 );
-                    addtoken( firstWord.c_str(), lineno, FileIndex );
+                    std::string firstWord = comment.substr(pos1, pos2-pos1);
+                    addtoken(firstWord.c_str(), lineno, FileIndex);
 
                     // ;
-                    addtoken( ";", lineno, FileIndex );
+                    addtoken(";", lineno, FileIndex);
                 }
 
                 lineno++;
@@ -389,7 +375,7 @@ void Tokenizer::tokenizeCode(std::istream &code, const unsigned int FileIndex, c
             do
             {
                 // Append token..
-                if ( pToken < &CurrentToken[sizeof(CurrentToken)-10] )
+                if (pToken < &CurrentToken[sizeof(CurrentToken)-10])
                 {
                     *pToken = c;
                     pToken++;
@@ -466,12 +452,12 @@ void Tokenizer::tokenizeCode(std::istream &code, const unsigned int FileIndex, c
     }
 
     // Replace "->" with "."
-    for ( Token *tok = tokens; tok; tok = tok->next )
+    for (Token *tok = tokens; tok; tok = tok->next)
     {
-        if ( strcmp(tok->str, "->") == 0 )
+        if (strcmp(tok->str, "->") == 0)
         {
             tok->str[0] = '.';
-			tok->str[1] = 0;
+            tok->str[1] = 0;
         }
     }
 }
