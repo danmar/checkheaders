@@ -62,7 +62,7 @@ void ReportErr(OutputFormat of, const std::string &file, const int line, const s
              << " line=\"" << line << "\""
              << " severity=\"style\""
              << " id=\"" << id << "\""
-             << " msg=\"" << errmsg << "\">";
+             << " msg=\"" << errmsg << "\"/>";
     }
     else
     {
