@@ -103,7 +103,7 @@ static std::string writestr(const std::string &str)
     return ostr.str();
 }
 
-void TestFixture::assert(const char *filename, int linenr, bool condition)
+void TestFixture::assertCondition(const char *filename, int linenr, bool condition)
 {
     if (!condition)
     {
