@@ -13,8 +13,8 @@ all:	${OBJS}	src/main.o
 	$(CXX) -Wall $(CXXFLAGS) -o ${APPNAME} $^ ${LDFLAGS}
 
 testrunner:	all
-	$(CXX) -I src -Wall $(CXXFLAGS) -o test/testrunner ${OBJS} test/*.cpp
-	
+	$(CXX) -I src -Wall $(CXXFLAGS) -o test/testrunner ${OBJS} test/*.cpp ${LDFLAGS}
+
 test:	testrunner
 	cd test;./testrunner;cd ..
 
