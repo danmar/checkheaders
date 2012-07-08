@@ -34,4 +34,3 @@ Usage
 Project home
 
   http://code.google.com/p/checkheaders
-

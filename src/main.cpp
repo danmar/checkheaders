@@ -31,6 +31,8 @@
 
 #include "checkheaders.h"
 
+#include "FileParser.h"   // <- File Parser when both skips and includes are specified in a file
+
 #include <algorithm>
 #include <iostream>
 #include <sstream>
@@ -66,6 +68,17 @@ int main(int argc, char* argv[])
         {
             ++i;
             skipIncludes.insert(argv[i]);
+        }
+
+        else if (strcmp(argv[i], "--file") == 0 && (i + 1) < argc)
+        {
+            //multiple files are allowed
+            ++i;
+            FileParser p(argv[i]);
+            if (1 == p.process(includePaths, skipIncludes))
+            {
+                return 1;
+            }
         }
 
         else if (strcmp(argv[i], "--xml") == 0)
@@ -129,6 +142,9 @@ int main(int argc, char* argv[])
                   << "                   you see 'Header not found' messages.\n"
                   << "    --skip <file>  Skip header. Matching #include directives in\n"
                   << "                   the source code will be skipped.\n"
+                  << "    --file <file>  Specify include paths and skip headers in a file,\n" 
+                  << "                   one item per line. Include section begins by 'include',\n"
+                  << "                   skip section begins by 'skip'\n"
                   << "    --vs           Output report in visual studio format\n"
                   << "    --xml          Output report in xml format\n"
                   << "\n"
