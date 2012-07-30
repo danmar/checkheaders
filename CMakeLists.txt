@@ -17,3 +17,5 @@ if(MSVC)
 endif(MSVC)
 
 install (TARGETS checkheaders RUNTIME DESTINATION bin)
+
+add_subdirectory(test)
