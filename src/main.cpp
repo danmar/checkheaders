@@ -39,11 +39,11 @@
 #include <cstring>
 #include <set>
 
+#define VERSION "1.1"
 
-static bool Debug;      /// --debug
-static OutputFormat outputFormat;
+static Options userOption;
 
-static void CheckFile(const char FileName[], const std::vector<std::string> &includePaths, const std::set<std::string> &skipIncludes);
+static void CheckFile(const char FileName[], const Options *pOptions, const std::vector<std::string> &includePaths, const std::set<std::string> &skipIncludes);
 
 //---------------------------------------------------------------------------
 // Main function of checkheaders
@@ -55,19 +55,30 @@ int main(int argc, char* argv[])
     std::vector<std::string> includePaths;
     std::set<std::string> skipIncludes;
 
-    outputFormat = OUTPUT_FORMAT_NORMAL;
+    userOption.outputFormat = OUTPUT_FORMAT_NORMAL;
+    userOption.Progress = true;
 
     for (int i = 1; i < argc; i++)
     {
         if (strcmp(argv[i], "--debug") == 0)
         {
-            Debug = true;
+            userOption.Debug = true;
+        }
+
+        else if (strcmp(argv[i], "--quiet") == 0)
+        {
+            userOption.Progress = false;
         }
 
         else if (strcmp(argv[i], "--skip") == 0 && (i + 1) < argc)
         {
             ++i;
             skipIncludes.insert(argv[i]);
+        }
+
+        else if (strcmp(argv[i], "--skip-all") == 0 )
+        {
+            userOption.IgnoreMissingIncludeFile = true;
         }
 
         else if (strcmp(argv[i], "--file") == 0 && (i + 1) < argc)
@@ -81,14 +92,20 @@ int main(int argc, char* argv[])
             }
         }
 
+        else if (strcmp(argv[i], "--version") == 0) 
+        {
+            std::cout << "checkheaders " << VERSION << std::endl;
+            return 0;
+        }
+
         else if (strcmp(argv[i], "--xml") == 0)
         {
-            outputFormat = OUTPUT_FORMAT_XML;
+            userOption.outputFormat = OUTPUT_FORMAT_XML;
         }
 
         else if (strcmp(argv[i], "--vs") == 0)
         {
-            outputFormat = OUTPUT_FORMAT_VS;
+            userOption.outputFormat = OUTPUT_FORMAT_VS;
         }
 
         else if (strchr("-/", *argv[i]) && *(argv[i]+1) == 'I')
@@ -140,11 +157,14 @@ int main(int argc, char* argv[])
                   << "Options:\n"
                   << "    -I <path>      Specify include path. It is only needed if\n"
                   << "                   you see 'Header not found' messages.\n"
+                  << "    --quiet        Keep informative message to minimum.\n"
                   << "    --skip <file>  Skip header. Matching #include directives in\n"
                   << "                   the source code will be skipped.\n"
-                  << "    --file <file>  Specify include paths and skip headers in a file,\n" 
+                  << "    --skip-all     Skip all missing include files.\n"
+                  << "    --file <file>  Specify include paths and skip headers in a file,\n"
                   << "                   one item per line. Include section begins by 'include',\n"
                   << "                   skip section begins by 'skip'\n"
+                  << "    --version      Print out version number\n"
                   << "    --vs           Output report in visual studio format\n"
                   << "    --xml          Output report in xml format\n"
                   << "\n"
@@ -160,7 +180,7 @@ int main(int argc, char* argv[])
 
     std::sort(filenames.begin(), filenames.end());
 
-    if (outputFormat == OUTPUT_FORMAT_XML)
+    if (userOption.outputFormat == OUTPUT_FORMAT_XML)
     {
         std::cerr << "<?xml version=\"1.0\"?>\n"
                   << "<results>\n";
@@ -168,10 +188,10 @@ int main(int argc, char* argv[])
 
     for (unsigned int c = 0; c < filenames.size(); c++)
     {
-        CheckFile(filenames[c].c_str(), includePaths, skipIncludes);
+        CheckFile(filenames[c].c_str(), &userOption, includePaths, skipIncludes);
     }
 
-    if (outputFormat == OUTPUT_FORMAT_XML)
+    if (userOption.outputFormat == OUTPUT_FORMAT_XML)
         std::cerr << "</results>\n";
 
     return 0;
@@ -181,16 +201,18 @@ int main(int argc, char* argv[])
 // CppCheck - A function that checks a specified file
 //---------------------------------------------------------------------------
 
-static void CheckFile(const char FileName[], const std::vector<std::string> &includePaths, const std::set<std::string> &skipIncludes)
+static void CheckFile(const char FileName[], const Options *pOptions,
+                      const std::vector<std::string> &includePaths,
+                      const std::set<std::string> &skipIncludes)
 {
     std::cout << "Checking " << FileName << "...\n";
 
     // Tokenize the file
     Tokenizer tokenizer;
-    tokenizer.tokenize(FileName, includePaths, skipIncludes, outputFormat, std::cerr);
+    tokenizer.tokenize(FileName, includePaths, skipIncludes, pOptions, std::cerr);
 
     // debug output..
-    if (Debug)
+    if (pOptions->Debug)
     {
         std::cout << "debug:";
         for (const Token *tok = tokenizer.tokens; tok; tok = tok->next)
@@ -199,7 +221,7 @@ static void CheckFile(const char FileName[], const std::vector<std::string> &inc
     }
 
     // Including header which is not needed
-    WarningIncludeHeader(tokenizer, true, outputFormat, std::cerr);
+    WarningIncludeHeader(tokenizer, pOptions, std::cerr);
 }
 //---------------------------------------------------------------------------
 
