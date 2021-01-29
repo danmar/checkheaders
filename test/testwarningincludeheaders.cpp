@@ -69,12 +69,17 @@ private:
         }
 
         std::ostringstream errout;
+        Options UserOption;
 
+        UserOption.Debug = false;
+        UserOption.Progress = false;
+        UserOption.IgnoreMissingIncludeFile = false;
+        UserOption.outputFormat = OUTPUT_FORMAT_NORMAL;
         Tokenizer tokenizer;
-        tokenizer.tokenize("declaration1.c", includePaths, skipIncludes, OUTPUT_FORMAT_NORMAL, errout);
+        tokenizer.tokenize("declaration1.c", includePaths, skipIncludes, &UserOption, errout);
 
         // Including header which is not needed
-        WarningIncludeHeader(tokenizer, false, OUTPUT_FORMAT_NORMAL, errout);
+        WarningIncludeHeader(tokenizer, &UserOption, errout);
 
         ASSERT_EQUALS("[declaration1.c:1] (style): The included header 'declaration1.h' is not needed (but forward declaration is needed)\n", errout.str());
     }
@@ -99,12 +104,18 @@ private:
         }
 
         std::ostringstream errout;
+        Options UserOption;
+
+        UserOption.Debug = false;
+        UserOption.Progress = false;
+        UserOption.IgnoreMissingIncludeFile = false;
+        UserOption.outputFormat = OUTPUT_FORMAT_NORMAL;
 
         Tokenizer tokenizer;
-        tokenizer.tokenize("declaration2.c", includePaths, skipIncludes, OUTPUT_FORMAT_NORMAL, errout);
+        tokenizer.tokenize("declaration2.c", includePaths, skipIncludes, &UserOption, errout);
 
         // Including header which is not needed
-        WarningIncludeHeader(tokenizer, false, OUTPUT_FORMAT_NORMAL, errout);
+        WarningIncludeHeader(tokenizer, &UserOption, errout);
 
         ASSERT_EQUALS("", errout.str());
     }
@@ -127,12 +138,18 @@ private:
         }
 
         std::ostringstream errout;
+        Options UserOption;
+
+        UserOption.Debug = false;
+        UserOption.Progress = false;
+        UserOption.IgnoreMissingIncludeFile = false;
+        UserOption.outputFormat = OUTPUT_FORMAT_NORMAL;
 
         Tokenizer tokenizer;
-        tokenizer.tokenize("implementation1.c", includePaths, skipIncludes, OUTPUT_FORMAT_NORMAL, errout);
+        tokenizer.tokenize("implementation1.c", includePaths, skipIncludes, &UserOption, errout);
 
         // Including header which is not needed
-        WarningIncludeHeader(tokenizer, false, OUTPUT_FORMAT_NORMAL, errout);
+        WarningIncludeHeader(tokenizer, &UserOption, errout);
 
         ASSERT_EQUALS("", errout.str());
     }
@@ -154,12 +171,18 @@ private:
         }
 
         std::ostringstream errout;
+        Options UserOption;
+
+        UserOption.Debug = false;
+        UserOption.Progress = false;
+        UserOption.IgnoreMissingIncludeFile = false;
+        UserOption.outputFormat = OUTPUT_FORMAT_NORMAL;
 
         Tokenizer tokenizer;
-        tokenizer.tokenize("implementation2.c", includePaths, skipIncludes, OUTPUT_FORMAT_NORMAL, errout);
+        tokenizer.tokenize("implementation2.c", includePaths, skipIncludes, &UserOption, errout);
 
         // Including header which is not needed
-        WarningIncludeHeader(tokenizer, false, OUTPUT_FORMAT_NORMAL, errout);
+        WarningIncludeHeader(tokenizer, &UserOption, errout);
 
         ASSERT_EQUALS("[implementation2.c:1] (style): The included header 'implementation2.h' is not needed\n", errout.str());
     }
@@ -189,12 +212,18 @@ private:
         }
 
         std::ostringstream errout;
+        Options UserOption;
+
+        UserOption.Debug = false;
+        UserOption.Progress = false;
+        UserOption.IgnoreMissingIncludeFile = false;
+        UserOption.outputFormat = OUTPUT_FORMAT_NORMAL;
 
         Tokenizer tokenizer;
-        tokenizer.tokenize("indentlevel.c", includePaths, skipIncludes, OUTPUT_FORMAT_NORMAL, errout);
+        tokenizer.tokenize("indentlevel.c", includePaths, skipIncludes, &UserOption, errout);
 
         // Including header which is not needed
-        WarningIncludeHeader(tokenizer, false, OUTPUT_FORMAT_NORMAL, errout);
+        WarningIncludeHeader(tokenizer, &UserOption, errout);
 
         ASSERT_EQUALS("[indentlevel.h:1] (style): The included header 'indentlevel-list.h' is not needed\n", errout.str());
     }
@@ -213,12 +242,18 @@ private:
         }
 
         std::ostringstream errout;
+        Options UserOption;
+
+        UserOption.Debug = false;
+        UserOption.Progress = false;
+        UserOption.IgnoreMissingIncludeFile = false;
+        UserOption.outputFormat = OUTPUT_FORMAT_NORMAL;
 
         Tokenizer tokenizer;
-        tokenizer.tokenize("issue3.c", includePaths, skipIncludes, OUTPUT_FORMAT_NORMAL, errout);
+        tokenizer.tokenize("issue3.c", includePaths, skipIncludes, &UserOption, errout);
 
         // Including header which is not needed
-        WarningIncludeHeader(tokenizer, false, OUTPUT_FORMAT_NORMAL, errout);
+        WarningIncludeHeader(tokenizer, &UserOption, errout);
 
         ASSERT_EQUALS("", errout.str());
     }
@@ -245,12 +280,18 @@ private:
         }
 
         std::ostringstream errout;
+        Options UserOption;
+
+        UserOption.Debug = false;
+        UserOption.Progress = false;
+        UserOption.IgnoreMissingIncludeFile = false;
+        UserOption.outputFormat = OUTPUT_FORMAT_NORMAL;
 
         Tokenizer tokenizer;
-        tokenizer.tokenize("needed_class.cpp", includePaths, skipIncludes, OUTPUT_FORMAT_NORMAL, errout);
+        tokenizer.tokenize("needed_class.cpp", includePaths, skipIncludes, &UserOption, errout);
 
         // Including header which is not needed
-        WarningIncludeHeader(tokenizer, false, OUTPUT_FORMAT_NORMAL, errout);
+        WarningIncludeHeader(tokenizer, &UserOption, errout);
 
         ASSERT_EQUALS("", errout.str());
     }
@@ -267,12 +308,18 @@ private:
         }
 
         std::ostringstream errout;
+        Options UserOption;
+
+        UserOption.Debug = false;
+        UserOption.Progress = false;
+        UserOption.IgnoreMissingIncludeFile = false;
+        UserOption.outputFormat = OUTPUT_FORMAT_NORMAL;
 
         Tokenizer tokenizer;
-        tokenizer.tokenize("needed_const.c", includePaths, skipIncludes, OUTPUT_FORMAT_NORMAL, errout);
+        tokenizer.tokenize("needed_const.c", includePaths, skipIncludes, &UserOption, errout);
 
         // Including header which is not needed
-        WarningIncludeHeader(tokenizer, false, OUTPUT_FORMAT_NORMAL, errout);
+        WarningIncludeHeader(tokenizer, &UserOption, errout);
 
         ASSERT_EQUALS("", errout.str());
     }
@@ -289,12 +336,18 @@ private:
         }
 
         std::ostringstream errout;
+        Options UserOption;
+
+        UserOption.Debug = false;
+        UserOption.Progress = false;
+        UserOption.IgnoreMissingIncludeFile = false;
+        UserOption.outputFormat = OUTPUT_FORMAT_NORMAL;
 
         Tokenizer tokenizer;
-        tokenizer.tokenize("needed_define1.c", includePaths, skipIncludes, OUTPUT_FORMAT_NORMAL, errout);
+        tokenizer.tokenize("needed_define1.c", includePaths, skipIncludes, &UserOption, errout);
 
         // Including header which is not needed
-        WarningIncludeHeader(tokenizer, false, OUTPUT_FORMAT_NORMAL, errout);
+        WarningIncludeHeader(tokenizer, &UserOption, errout);
 
         ASSERT_EQUALS("", errout.str());
     }
@@ -313,12 +366,18 @@ private:
         }
 
         std::ostringstream errout;
+        Options UserOption;
+
+        UserOption.Debug = false;
+        UserOption.Progress = false;
+        UserOption.IgnoreMissingIncludeFile = false;
+        UserOption.outputFormat = OUTPUT_FORMAT_NORMAL;
 
         Tokenizer tokenizer;
-        tokenizer.tokenize("needed_define2.c", includePaths, skipIncludes, OUTPUT_FORMAT_NORMAL, errout);
+        tokenizer.tokenize("needed_define2.c", includePaths, skipIncludes, &UserOption, errout);
 
         // Including header which is not needed
-        WarningIncludeHeader(tokenizer, false, OUTPUT_FORMAT_NORMAL, errout);
+        WarningIncludeHeader(tokenizer, &UserOption, errout);
 
         ASSERT_EQUALS("", errout.str());
     }
@@ -338,12 +397,18 @@ private:
         }
 
         std::ostringstream errout;
+        Options UserOption;
+
+        UserOption.Debug = false;
+        UserOption.Progress = false;
+        UserOption.IgnoreMissingIncludeFile = false;
+        UserOption.outputFormat = OUTPUT_FORMAT_NORMAL;
 
         Tokenizer tokenizer;
-        tokenizer.tokenize("needed_include.c", includePaths, skipIncludes, OUTPUT_FORMAT_NORMAL, errout);
+        tokenizer.tokenize("needed_include.c", includePaths, skipIncludes, &UserOption, errout);
 
         // Including header which is not needed
-        WarningIncludeHeader(tokenizer, false, OUTPUT_FORMAT_NORMAL, errout);
+        WarningIncludeHeader(tokenizer, &UserOption, errout);
 
         ASSERT_EQUALS("[needed_include.c:1] (style): Inconclusive results: The included header 'needed_include1.h' is not needed. "
                       "However it is needed indirectly because it includes 'needed_include2.h'. "
@@ -364,12 +429,18 @@ private:
         }
 
         std::ostringstream errout;
+        Options UserOption;
+
+        UserOption.Debug = false;
+        UserOption.Progress = false;
+        UserOption.IgnoreMissingIncludeFile = false;
+        UserOption.outputFormat = OUTPUT_FORMAT_NORMAL;
 
         Tokenizer tokenizer;
-        tokenizer.tokenize("needed_typedef.c", includePaths, skipIncludes, OUTPUT_FORMAT_NORMAL, errout);
+        tokenizer.tokenize("needed_typedef.c", includePaths, skipIncludes, &UserOption, errout);
 
         // Including header which is not needed
-        WarningIncludeHeader(tokenizer, false, OUTPUT_FORMAT_NORMAL, errout);
+        WarningIncludeHeader(tokenizer, &UserOption, errout);
 
         ASSERT_EQUALS("", errout.str());
     }
@@ -389,12 +460,18 @@ private:
         }
 
         std::ostringstream errout;
+        Options UserOption;
+
+        UserOption.Debug = false;
+        UserOption.Progress = false;
+        UserOption.IgnoreMissingIncludeFile = false;
+        UserOption.outputFormat = OUTPUT_FORMAT_NORMAL;
 
         Tokenizer tokenizer;
-        tokenizer.tokenize("needed_namespace.c", includePaths, skipIncludes, OUTPUT_FORMAT_NORMAL, errout);
+        tokenizer.tokenize("needed_namespace.c", includePaths, skipIncludes, &UserOption, errout);
 
         // Including header which is not needed
-        WarningIncludeHeader(tokenizer, false, OUTPUT_FORMAT_NORMAL, errout);
+        WarningIncludeHeader(tokenizer, &UserOption, errout);
 
         ASSERT_EQUALS("", errout.str());
     }
@@ -410,12 +487,18 @@ private:
         }
 
         std::ostringstream errout;
+        Options UserOption;
+
+        UserOption.Debug = false;
+        UserOption.Progress = false;
+        UserOption.IgnoreMissingIncludeFile = false;
+        UserOption.outputFormat = OUTPUT_FORMAT_NORMAL;
 
         Tokenizer tokenizer;
-        tokenizer.tokenize("stdafx.c", includePaths, skipIncludes, OUTPUT_FORMAT_NORMAL, errout);
+        tokenizer.tokenize("stdafx.c", includePaths, skipIncludes, &UserOption, errout);
 
         // Including header which is not needed
-        WarningIncludeHeader(tokenizer, false, OUTPUT_FORMAT_NORMAL, errout);
+        WarningIncludeHeader(tokenizer, &UserOption, errout);
 
         ASSERT_EQUALS("", errout.str());
     }
@@ -431,12 +514,18 @@ private:
         }
 
         std::ostringstream errout;
+        Options UserOption;
+
+        UserOption.Debug = false;
+        UserOption.Progress = false;
+        UserOption.IgnoreMissingIncludeFile = false;
+        UserOption.outputFormat = OUTPUT_FORMAT_NORMAL;
 
         Tokenizer tokenizer;
-        tokenizer.tokenize("standardheader1.c", includePaths, skipIncludes, OUTPUT_FORMAT_NORMAL, errout);
+        tokenizer.tokenize("standardheader1.c", includePaths, skipIncludes, &UserOption, errout);
 
         // Including header which is not needed
-        WarningIncludeHeader(tokenizer, false, OUTPUT_FORMAT_NORMAL, errout);
+        WarningIncludeHeader(tokenizer, &UserOption, errout);
 
         ASSERT_EQUALS("[standardheader1.c:1] (style): The included header 'standardheader1.h' is not needed\n", errout.str());
     }
@@ -457,12 +546,18 @@ private:
         }
 
         std::ostringstream errout;
+        Options UserOption;
+
+        UserOption.Debug = false;
+        UserOption.Progress = false;
+        UserOption.IgnoreMissingIncludeFile = false;
+        UserOption.outputFormat = OUTPUT_FORMAT_NORMAL;
 
         Tokenizer tokenizer;
-        tokenizer.tokenize("standardheader2.c", includePaths, skipIncludes, OUTPUT_FORMAT_NORMAL, errout);
+        tokenizer.tokenize("standardheader2.c", includePaths, skipIncludes, &UserOption, errout);
 
         // Including header which is not needed
-        WarningIncludeHeader(tokenizer, false, OUTPUT_FORMAT_NORMAL, errout);
+        WarningIncludeHeader(tokenizer, &UserOption, errout);
 
         ASSERT_EQUALS("", errout.str());
     }
@@ -478,12 +573,18 @@ private:
         }
 
         std::ostringstream errout;
+        Options UserOption;
+
+        UserOption.Debug = false;
+        UserOption.Progress = false;
+        UserOption.IgnoreMissingIncludeFile = false;
+        UserOption.outputFormat = OUTPUT_FORMAT_NORMAL;
 
         Tokenizer tokenizer;
-        tokenizer.tokenize("test1.c", includePaths, skipIncludes, OUTPUT_FORMAT_NORMAL, errout);
+        tokenizer.tokenize("test1.c", includePaths, skipIncludes, &UserOption, errout);
 
         // Including header which is not needed
-        WarningIncludeHeader(tokenizer, false, OUTPUT_FORMAT_NORMAL, errout);
+        WarningIncludeHeader(tokenizer, &UserOption, errout);
 
         ASSERT_EQUALS("[test1.c:1] (style): The included header 'test1.h' is not needed\n", errout.str());
     }

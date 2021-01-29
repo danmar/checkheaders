@@ -136,7 +136,10 @@ Tokenizer::~Tokenizer()
     }
 }
 
-bool Tokenizer::tokenize(const char FileName[], const std::vector<std::string> &includePaths, const std::set<std::string> &skipIncludes, const OutputFormat outputFormat, std::ostream &errout)
+bool Tokenizer::tokenize(const char FileName[],
+                         const std::vector<std::string> &includePaths,
+                         const std::set<std::string> &skipIncludes,
+                         const Options *pOption, std::ostream &errout)
 {
     // Skip stdafx.h..
     if (SameFileName(FileName, "stdafx.h"))
@@ -185,7 +188,8 @@ bool Tokenizer::tokenize(const char FileName[], const std::vector<std::string> &
     FullFileNames.push_back(filename);
 
     // Tokenize the file..
-    tokenizeCode(fin, FullFileNames.size() - 1, includePaths, skipIncludes, outputFormat, errout);
+    tokenizeCode(fin, FullFileNames.size() - 1, includePaths, skipIncludes,
+                 pOption, errout);
 
     return true;
 }
@@ -199,7 +203,10 @@ bool Tokenizer::tokenize(const char FileName[], const std::vector<std::string> &
 // Tokenize - tokenizes input stream
 //---------------------------------------------------------------------------
 
-void Tokenizer::tokenizeCode(std::istream &code, const unsigned int FileIndex, const std::vector<std::string> &includePaths, const std::set<std::string> &skipIncludes, const OutputFormat outputFormat, std::ostream &errout)
+void Tokenizer::tokenizeCode(std::istream &code, const unsigned int FileIndex,
+                             const std::vector<std::string> &includePaths,
+                             const std::set<std::string> &skipIncludes,
+                             const Options *pOptions, std::ostream &errout)
 {
     // Tokenize the file.
     unsigned int lineno = 1;
@@ -251,13 +258,15 @@ void Tokenizer::tokenizeCode(std::istream &code, const unsigned int FileIndex, c
                         addtoken(SystemHeader ? "#include<>" : "#include", lineno, FileIndex);
                         addtoken(line.c_str(), lineno, FileIndex);
 
-                        const bool found(tokenize(line.c_str(), incpaths, skipIncludes, outputFormat, errout));
-                        if (!found)
+                        const bool found(tokenize(line.c_str(), incpaths,
+                                                  skipIncludes, pOptions, errout));
+                        if (!found && !pOptions->IgnoreMissingIncludeFile)
                         {
                             free(tokens_back->str);
                             tokens_back->str = strdup("not found");
                             const std::string errmsg("Header not found '" + line + "'. Use -I or --skip to fix this message.");
-                            ReportErr(outputFormat, FullFileNames[FileIndex], lineno, "HeaderNotFound", errmsg, errout);
+                            ReportErr(pOptions->outputFormat, FullFileNames[FileIndex],
+                                      lineno, "HeaderNotFound", errmsg, errout);
                         }
                     }
                 }

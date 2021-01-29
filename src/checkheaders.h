@@ -25,10 +25,11 @@
 #include "tokenize.h"
 #include <ostream>
 
-void WarningHeaderWithImplementation(const Tokenizer &tokenizer, OutputFormat outputFormat, std::ostream &errout);
+void WarningHeaderWithImplementation(const Tokenizer &tokenizer,
+                                     const Options *pOptions, std::ostream &errout);
 
-void WarningIncludeHeader(const Tokenizer &tokenizer, bool Progress, OutputFormat outputFormat, std::ostream &errout);
-
+void WarningIncludeHeader(const Tokenizer &tokenizer, const Options *pOptions,
+                          std::ostream &errout);
 
 //---------------------------------------------------------------------------
 #endif

@@ -26,8 +26,19 @@ for more options.
 Usage
 
   The syntax is:
-      checkheaders [-I <path>] [--skip <file>] [--file <file>] [--xml] <path or file>
+      checkheaders [-I <path>] [--skip <file>] [--skip-all] [--file <file>] [--xml] [--quiet] <path or file>
 
+Options
+
+  -I             Include path
+  --file <file>  Specify the files to check in a text file 
+  --quiet        Do not show progress
+  --skip <file>  Skip missing include file
+  --skip-all     Skip all missing include files 
+  --version      Print out version number
+  --vs           Output report in VisualStudio format 
+  --xml          Output report in XML format 
+  
   The error messages will be printed to stderr.
 
   Examples:

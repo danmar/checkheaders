@@ -111,7 +111,8 @@ static void getincludes(const std::vector< std::list<IncludeInfo> > &includes, c
     }
 }
 
-void WarningIncludeHeader(const Tokenizer &tokenizer, bool Progress, OutputFormat outputFormat, std::ostream &errout)
+void WarningIncludeHeader(const Tokenizer &tokenizer, const Options *pOptions,
+                          std::ostream &errout)
 {
     // A header is needed if:
     // * It contains some needed class declaration
@@ -391,7 +392,7 @@ void WarningIncludeHeader(const Tokenizer &tokenizer, bool Progress, OutputForma
             if (include->hfile >= tokenizer.ShortFileNames.size())
                 continue;
 
-            if (Progress)
+            if (pOptions->Progress)
             {
                 std::cout << "progress: file " << tokenizer.ShortFileNames[fileIndex] << " checking include " << tokenizer.ShortFileNames[include->hfile] << std::endl;
             }
@@ -410,7 +411,7 @@ void WarningIncludeHeader(const Tokenizer &tokenizer, bool Progress, OutputForma
                 const std::string sym = matchSymbols(needed[fileIndex], classes[*it], names[*it]);
                 if (!sym.empty())
                 {
-                    if (Progress)
+                    if (pOptions->Progress)
                         std::cout << "progress: needed symbol '" << sym << "'" << std::endl;
                     Needed = true;
                     break;
@@ -430,7 +431,7 @@ void WarningIncludeHeader(const Tokenizer &tokenizer, bool Progress, OutputForma
                     {
                         needed_header = tokenizer.ShortFileNames[*it];
 
-                        if (Progress)
+                        if (pOptions->Progress)
                             std::cout << "progress: needed symbol '" << sym << "'" << std::endl;
                         Needed = true;
                         break;
@@ -447,7 +448,7 @@ void WarningIncludeHeader(const Tokenizer &tokenizer, bool Progress, OutputForma
                            << "'. If it is included by intention use '--skip "
                            << include->tok->next->str
                            << "' to remove false positives.";
-                    ReportErr(tokenizer, outputFormat, include->tok, "HeaderNotNeeded", errmsg.str(), errout);
+                    ReportErr(tokenizer, pOptions->outputFormat, include->tok, "HeaderNotNeeded", errmsg.str(), errout);
                 }
             }
 
@@ -472,9 +473,9 @@ void WarningIncludeHeader(const Tokenizer &tokenizer, bool Progress, OutputForma
                     if (NeedDeclaration)
                         errmsg << " (but forward declaration is needed)";
 
-                    ReportErr(tokenizer, outputFormat, include->tok, "HeaderNotNeeded", errmsg.str(), errout);
+                    ReportErr(tokenizer, pOptions->outputFormat, include->tok, "HeaderNotNeeded", errmsg.str(), errout);
                 }
-                else if (Progress)
+                else if (pOptions->Progress)
                     std::cout << "progress: bail out (header not found)" << std::endl;
             }
         }

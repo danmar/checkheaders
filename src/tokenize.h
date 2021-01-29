@@ -25,6 +25,20 @@
 #include <string>
 #include <vector>
 
+enum OutputFormat
+{
+    OUTPUT_FORMAT_NORMAL,
+    OUTPUT_FORMAT_XML,
+    OUTPUT_FORMAT_VS
+};
+
+typedef struct {
+  bool Debug;                    // --debug
+  OutputFormat outputFormat;     // --xml
+  bool Progress;                 // --quiet
+  bool IgnoreMissingIncludeFile; // --skip-all
+} Options;
+
 struct Token
 {
     unsigned int FileIndex;
@@ -33,19 +47,15 @@ struct Token
     struct Token *next;
 };
 
-enum OutputFormat
-{
-    OUTPUT_FORMAT_NORMAL,
-    OUTPUT_FORMAT_XML,
-    OUTPUT_FORMAT_VS
-};
-
 class Tokenizer
 {
 private:
     struct Token * tokens_back;
 
-    void tokenizeCode(std::istream &code, const unsigned int FileIndex, const std::vector<std::string> &includePaths, const std::set<std::string> &skipIncludes, const OutputFormat outputFormat, std::ostream &errout);
+    void tokenizeCode(std::istream &code, const unsigned int FileIndex,
+                      const std::vector<std::string> &includePaths,
+                      const std::set<std::string> &skipIncludes,
+                      const Options *pUserOptions, std::ostream &errout);
 
     void addtoken(const char str[], const unsigned int lineno, const unsigned int fileno);
 
@@ -62,7 +72,10 @@ public:
      * @param XmlOutput should errors be written in xml format?
      * @param errout error stream
      */
-    bool tokenize(const char FileName[], const std::vector<std::string> &includePaths, const std::set<std::string> &skipIncludes, const OutputFormat outputFormat, std::ostream &errout);
+    bool tokenize(const char FileName[],
+                  const std::vector<std::string> &includePaths,
+                  const std::set<std::string> &skipIncludes,
+                  const Options *pOptions, std::ostream &errout);
 
     struct Token * tokens;
     std::vector<std::string> FullFileNames;
